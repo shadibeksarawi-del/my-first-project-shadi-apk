@@ -1,0 +1,14 @@
+{
+  "name": "overage56-mobile",
+  "version": "1.0.0",
+  "private": true,
+  "description": "حاسبة تجاوز المادة 56 - أندرويد",
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/browser": "^6.0.2",
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/filesystem": "^6.0.1",
+    "@capacitor/share": "^6.0.2"
+  },
+  "devDependencies": { "@capacitor/cli": "^6.1.2" }
+}

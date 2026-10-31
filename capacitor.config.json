@@ -1,0 +1,8 @@
+{
+  "appId": "sy.overage56.mobile",
+  "appName": "حاسبة التجاوز",
+  "webDir": "www",
+  "backgroundColor": "#eef1f4",
+  "server": { "androidScheme": "https" },
+  "android": { "allowMixedContent": false }
+}

@@ -1,0 +1,1564 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="mobile-shim.js"></script>
+<title>حاسبة تجاوز المادة 56 - النسخة التجريبية</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Reem+Kufi:wght@600;700&display=swap">
+<style>
+/* Layout: ورقة حسابية رسمية. شريط ملخص ثابت أعلى الصفحة، تحته أربع صفحات إدخال ونتيجة كما في ملف إكسل. */
+:root {
+  --bg: #eef1f4;
+  --surface: #ffffff;
+  --surface-2: #f6f8fa;
+  --ink: #15232d;
+  --ink-2: #4c5d6a;
+  --line: #d3dae1;
+  --accent: #0c5a73;
+  --accent-ink: #ffffff;
+  --accent-soft: #dcebf0;
+  --input-bg: #fff8dc;
+  --input-ink: #0b3a8c;
+  --good: #1d7a46;
+  --good-soft: #dff1e6;
+  --warn: #a64a12;
+  --warn-soft: #fbe6d6;
+  --paper: #ffffff;
+  --paper-ink: #111c24;
+  --paper-mute: #4a5a66;
+  --paper-line: #aab5bd;
+  --paper-soft: #eef2f5;
+  --paper-warn: #fbe6d6;
+  --font-display: "Reem Kufi", "IBM Plex Sans Arabic", Tahoma, sans-serif;
+  --font-body: "IBM Plex Sans Arabic", Tahoma, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f171d; --surface: #16222a; --surface-2: #1b2933; --ink: #e6edf2; --ink-2: #9db0be;
+    --line: #2b3b47; --accent: #5cb8d4; --accent-ink: #06222c; --accent-soft: #17323d;
+    --input-bg: #2a2713; --input-ink: #9fc2ff; --good: #5fcf8e; --good-soft: #15321f;
+    --warn: #f0a26b; --warn-soft: #3a2415; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f171d; --surface: #16222a; --surface-2: #1b2933; --ink: #e6edf2; --ink-2: #9db0be;
+  --line: #2b3b47; --accent: #5cb8d4; --accent-ink: #06222c; --accent-soft: #17323d;
+  --input-bg: #2a2713; --input-ink: #9fc2ff; --good: #5fcf8e; --good-soft: #15321f;
+  --warn: #f0a26b; --warn-soft: #3a2415; color-scheme: dark;
+}
+[hidden] { display: none !important; }
+#lock { position: fixed; inset: 0; z-index: 100; background: var(--bg); display: flex; align-items: center; justify-content: center; padding: 16px; overflow: auto; }
+.lockcard { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 22px; width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 12px; }
+.lockcard h1 { font-size: 1.4rem; }
+.lkdev { font-size: 1.25rem; font-weight: 700; text-align: center; letter-spacing: 1px; background: var(--accent-soft); border-radius: 6px; padding: 10px; user-select: all; }
+#lk-key { font: inherit; direction: ltr; border: 1px solid var(--line); border-radius: 5px; padding: 8px; background: var(--input-bg); color: var(--input-ink); resize: vertical; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.6;
+  padding-block: 20px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+h1 { font-family: var(--font-display); font-size: 1.7rem; margin: 0; letter-spacing: 0; text-wrap: balance; }
+h2 { font-size: 1.05rem; margin: 0 0 10px; font-weight: 600; }
+.trial { display: inline-block; vertical-align: middle; font-family: var(--font-body); font-size: .8rem; font-weight: 700; background: var(--warn-soft); color: var(--warn); border: 1px solid var(--warn); border-radius: 99px; padding: 2px 12px; margin-inline-start: 8px; }
+.credit { text-align: center; color: var(--ink-2); font-size: .85rem; }
+.sub { color: var(--ink-2); margin: 2px 0 0; max-width: 65ch; }
+.num { font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: isolate; }
+
+.summary { display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 12px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px 14px; min-width: 0; }
+.tile .k { color: var(--ink-2); font-size: .82rem; }
+.tile .v { font-size: 1.35rem; font-weight: 700; font-variant-numeric: tabular-nums; }
+.tile.main { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.tile.main .k { color: inherit; opacity: .85; }
+.tile.main .v { font-size: 1.9rem; font-family: var(--font-display); }
+.pill { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: .85rem; font-weight: 600; }
+.pill.warn { background: var(--warn-soft); color: var(--warn); }
+.pill.good { background: var(--good-soft); color: var(--good); }
+
+.bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; background: var(--surface-2); border: 1px dashed var(--line); border-radius: 6px; padding: 8px 12px; }
+.bar .grow { flex: 1; min-width: 200px; color: var(--ink-2); font-size: .9rem; }
+button { font: inherit; cursor: pointer; border-radius: 5px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); padding: 6px 12px; }
+button:hover { border-color: var(--accent); }
+button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+button.ghost { background: transparent; }
+button:focus-visible, input:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 2px solid var(--line); }
+.tabs button { border: 0; border-bottom: 3px solid transparent; border-radius: 0; background: transparent; padding: 10px 14px; margin-bottom: -2px; color: var(--ink-2); font-weight: 500; }
+.tabs button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); font-weight: 700; }
+
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+.hint { color: var(--ink-2); font-size: .88rem; margin: 0; max-width: 75ch; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 560px; }
+th { background: var(--accent); color: var(--accent-ink); font-weight: 600; font-size: .85rem; padding: 8px 6px; border: 1px solid var(--accent); text-align: center; }
+td { border: 1px solid var(--line); padding: 3px; text-align: center; font-variant-numeric: tabular-nums; }
+td.calc { background: var(--surface-2); padding: 6px 8px; }
+td.res { background: var(--good-soft); font-weight: 700; padding: 6px 8px; }
+tr.over td { background: var(--warn-soft); }
+tr.total td { background: var(--accent-soft); font-weight: 700; padding: 6px 8px; }
+input[type=text], input[type=number], input[type=date], input[type=month] {
+  font: inherit; width: 100%; min-width: 0; border: 0; background: var(--input-bg); color: var(--input-ink); padding: 6px 8px; text-align: center; border-radius: 0; }
+.field { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.field label { font-size: .85rem; color: var(--ink-2); }
+.field input { border: 1px solid var(--line); border-radius: 5px; text-align: right; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+details summary { cursor: pointer; font-weight: 600; color: var(--accent); }
+.status { padding: 8px 12px; border-radius: 6px; font-weight: 600; }
+.status.ok { background: var(--good-soft); color: var(--good); }
+.status.bad { background: var(--warn-soft); color: var(--warn); }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 6px 16px; max-width: 560px; }
+.kv .big { font-weight: 700; font-size: 1.1rem; }
+.kv div:nth-child(odd) { color: var(--ink-2); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.mini { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; font-size: .92rem; }
+.mini li { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px dotted var(--line); padding-bottom: 3px; }
+.mini li.sum { font-weight: 700; border-bottom: 0; }
+.rm { padding: 2px 8px; }
+.empty { color: var(--ink-2); padding: 24px; text-align: center; }
+@media (max-width: 760px) {
+  .summary { grid-template-columns: 1fr 1fr; }
+  .tile.main { grid-column: 1 / -1; }
+  .two { grid-template-columns: 1fr; }
+}
+.paper { background: var(--paper); color: var(--paper-ink); border: 1px solid var(--line); border-radius: 4px; padding: 28px 26px; width: 100%; max-width: 820px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; font-size: 14px; line-height: 1.7; }
+.paper h3 { margin: 0; font-family: var(--font-display); font-size: 1.4rem; text-align: center; }
+.paper .meta { text-align: center; color: var(--paper-mute); font-size: .85rem; margin-top: -8px; }
+.paper h4 { break-after: avoid; margin: 8px 0 0; font-size: 1rem; border-bottom: 2px solid var(--paper-ink); padding-bottom: 3px; }
+.paper table { min-width: 0; font-size: .86rem; }
+.paper th { background: var(--paper-soft); color: var(--paper-ink); border: 1px solid var(--paper-line); padding: 5px 4px; }
+.paper td { border: 1px solid var(--paper-line); padding: 4px 6px; background: transparent; }
+.paper tr.over td { background: var(--paper-warn); }
+.paper tr.total td { background: var(--paper-soft); font-weight: 700; }
+.idgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 24px; }
+.idgrid div { display: flex; gap: 8px; border-bottom: 1px dotted var(--paper-line); padding-bottom: 2px; min-width: 0; }
+.idgrid b { white-space: nowrap; }
+.steps { margin: 0; padding-inline-start: 22px; display: grid; gap: 4px; }
+.note { border: 1px solid var(--paper-ink); padding: 10px 14px; font-weight: 600; }
+.signoff { margin-top: 18px; padding-top: 10px; border-top: 1px solid var(--paper-line); text-align: center; font-weight: 600; }
+.field select { font: inherit; border: 1px solid var(--line); border-radius: 5px; padding: 6px 8px; background: var(--input-bg); color: var(--input-ink); }
+.paper.org { min-height: 600px; }
+.sigrow { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; text-align: center; font-weight: 700; margin-top: 22px; line-height: 1.9; }
+.sigrow > div { min-height: 90px; }
+.sigleft { text-align: left; font-weight: 700; margin-top: 22px; line-height: 1.9; }
+.orgfoot { margin-top: auto; padding-top: 8px; border-top: 1px solid var(--paper-line); text-align: center; color: var(--paper-mute); font-size: .82rem; }
+@media (max-width: 760px) { .idgrid { grid-template-columns: 1fr; } .paper { padding: 18px 14px; } }
+@page { size: A4; margin: 14mm; }
+@media print {
+  body { background: #fff; padding: 0; }
+  header, .summary, .tabs, .bar, .noprint { display: none !important; }
+  .panel { border: 0; padding: 0; }
+  input, select, textarea { background: #fff !important; color: #000 !important; border: 1px solid #999 !important; }
+  #p-rep:not([hidden]), #p-org:not([hidden]), #p-cmp:not([hidden]) { display: block !important; background: none; border: 0; padding: 0; }
+  .paper.org { min-height: 255mm; }
+  .paper { border: 0; padding: 0; max-width: none; }
+  .scroll { overflow: visible; }
+  tr { break-inside: avoid; }
+}
+.letterhead { text-align: right; font-weight: 700; line-height: 1.8; border-bottom: 2px solid var(--paper-ink); padding-bottom: 8px; }
+.letter { display: grid; gap: 4px; }
+.letter .subj { text-align: center; font-weight: 700; text-decoration: underline; margin-top: 6px; }
+.field textarea { font: inherit; border: 1px solid var(--line); border-radius: 5px; padding: 6px 8px; background: var(--input-bg); color: var(--input-ink); }
+.lawt td { text-align: right; padding: 5px 8px; }
+.letterhead .lhdate { margin-top: 4px; font-weight: 600; }
+.letter .to { text-align: center; font-size: 1.6rem; font-weight: 700; margin: 10px 0 4px; line-height: 1.5; }
+.paper .sigtbl { width: 100%; min-width: 0; border-collapse: collapse; margin-top: 22px; }
+.paper .sigtbl td { border: 0; background: transparent; text-align: center; font-weight: 700; vertical-align: top; height: 90px; padding: 4px; line-height: 1.9; }
+.paper .sigtbl .nm { display: block; font-weight: 600; margin-top: 4px; }
+.appfoot { text-align: center; color: var(--ink-2); font-size: .85rem; border-top: 1px solid var(--line); padding-top: 10px; }
+.legt { min-width: 0; width: 100%; table-layout: fixed; font-size: .86rem; }
+.legt th, .legt td { padding: 4px 3px; overflow-wrap: anywhere; word-break: break-word; }
+.legt input { padding: 5px 4px; font-size: .86rem; }
+.legt td.nt { font-size: .8rem; color: var(--warn); text-align: right; line-height: 1.5; }
+.legt tr.skip td { background: var(--warn-soft); }
+@media (max-width: 760px) { .legt { min-width: 600px; } }
+.expbar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+</style>
+
+</head>
+<body>
+<div class="wrap" id="app" dir="rtl" lang="ar">
+  <header>
+    <h1>حاسبة تجاوز المادة 56 <span class="trial">النسخة التجريبية</span></h1>
+    <p class="sub">تطبق البند «ب» من المادة 56 من قانون التأمينات على أجور آخر 12 شهراً، وتحسب المعاش بعد استبعاد ما يتجاوز السقف.</p>
+  </header>
+
+  <div class="summary" id="sum" aria-live="polite"></div>
+
+  <div class="bar noprint">
+    <div class="grow" id="exnote"></div>
+    <button type="button" id="ex1">تحميل مثال 1</button>
+    <button type="button" id="ex2">تحميل مثال 2</button>
+    <button type="button" id="clr" class="ghost">مسح الكل</button>
+    <button type="button" id="run-tests" class="ghost">اختبار الحساب</button>
+  </div>
+  <div id="warns" class="noprint"></div>
+  <div id="tests" class="noprint"></div>
+
+  <div class="bar noprint">
+    <div class="grow">السجلات المحفوظة (بالرقم التأميني)<span id="stmsg"></span></div>
+    <button type="button" id="st-save" class="primary">حفظ الإدخالات</button>
+    <input type="text" id="st-find" list="st-list" inputmode="numeric" placeholder="الرقم التأميني" style="width:170px;border:1px solid var(--line);border-radius:5px">
+    <datalist id="st-list"></datalist>
+    <button type="button" id="st-load">جلب</button>
+    <button type="button" id="st-del" class="ghost">حذف السجل</button>
+    <button type="button" id="st-exp" class="ghost">تصدير PDF</button><button type="button" id="prt-all" class="ghost">طباعة</button>
+    <button type="button" id="st-imp" class="ghost">استيراد ملف</button>
+    <input type="file" id="st-file" accept=".json,application/json" hidden>
+  </div>
+
+  <div class="tabs" role="tablist" id="tabs">
+    <button type="button" role="tab" data-t="ins" aria-selected="true">بيانات المؤمن عليه</button>
+    <button type="button" role="tab" data-t="wag" aria-selected="false">الاشتراكات والأجور الفعلية</button>
+    <button type="button" role="tab" data-t="lv" aria-selected="false">الإجازات بلا أجر</button>
+    <button type="button" role="tab" data-t="law" aria-selected="false">المعايير القانونية</button>
+    <button type="button" role="tab" data-t="ref" aria-selected="false">الزيادات التشريعية الثابتة</button>
+    <button type="button" role="tab" data-t="leg" aria-selected="false">الزيادات التشريعية المطبقة</button>
+    <button type="button" role="tab" data-t="per" aria-selected="false">الزيادات الدورية</button>
+    <button type="button" role="tab" data-t="res" aria-selected="false">النتيجة</button>
+    <button type="button" role="tab" data-t="rep" aria-selected="false">التقرير المفصل</button>
+    <button type="button" role="tab" data-t="mf" aria-selected="false">تقرير المفاضلة</button>
+    <button type="button" role="tab" data-t="org" aria-selected="false">تقرير الجهاز</button>
+    <button type="button" role="tab" data-t="cmp" aria-selected="false">التعويض</button>
+    <button type="button" role="tab" data-t="hdr" aria-selected="false">ترويسة التقارير</button>
+  </div>
+
+  <!-- بيانات المؤمن عليه -->
+  <section class="panel" id="p-ins" role="tabpanel">
+    <div>
+      <h2>بيانات المؤمن عليه</h2>
+      <div class="grid">
+        <div class="field" style="grid-column: 1 / -1"><label for="i-name">الاسم الثلاثي</label><input type="text" id="i-name" data-n="name"></div>
+        <div class="field"><label for="i-no">الرقم التأميني</label><input type="text" id="i-no" inputmode="numeric" data-n="no"></div>
+        <div class="field"><label for="i-gender">الجنس</label><select id="i-gender" data-n="gender"><option value="">—</option><option value="m">ذكر</option><option value="f">أنثى</option></select></div>
+        <div class="field"><label for="i-birth">تاريخ الولادة</label><input type="date" id="i-birth" data-n="birth"></div>
+        <div class="field" style="grid-column: 1 / -1"><label for="i-last">آخر جهة عمل</label><input type="text" id="i-last" data-n="last"></div>
+        <div class="field"><label for="i-sub">تاريخ الاشتراك</label><input type="date" id="i-sub" data-n="sub"></div>
+        <div class="field"><label for="i-sep">تاريخ الانفكاك</label><input type="date" id="i-sep" data-n="sep"></div>
+        <div class="field"><label for="i-pay">تاريخ بدء الصرف</label><input type="date" id="i-pay" data-n="pay"></div>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="field"><label for="entitle">تاريخ الاستحقاق الفعلي (يعتمد في الحساب)</label><input type="date" id="entitle" data-g="entitle"></div>
+      <div class="field"><label for="added">الخدمات المضمومة (بالأشهر)</label><input type="number" id="added" min="0" data-g="added"></div>
+      <div class="field" style="grid-column: 1 / -1"><label for="refdate">التاريخ المرجعي لبدء استحقاق الزيادات الدورية والتشريعية</label><input type="date" id="refdate" data-g="refDate"></div>
+    </div>
+    <p class="hint">إذا أُدخل التاريخ المرجعي: تُطبَّق الزيادات التشريعية الثابتة التي يبدأ صرفها بعد هذا التاريخ فقط، وتُولَّد الزيادة الدورية بعد مضي سنتين كاملتين عليه ثم كل سنتين كاملتين حتى تاريخ الانفكاك، وتُهمل الفترة الأخيرة إن كانت أقل من سنتين. إذا ترك فارغاً يبقى الحساب كما كان سابقاً.</p>
+    <div class="field"><label><input type="checkbox" id="stateTbl" data-gb="stateTbl"> الجهة تعتمد جداول الأجور الملحقة بالقانون الأساسي للعاملين في الدولة 50/2004 (تُطبَّق عليها الزيادات التشريعية آلياً، م1/ز/4)</label></div>
+    <div>
+      <h2>بيانات الخدمة</h2>
+      <div class="scroll"><table>
+        <thead><tr><th>الجهة</th><th>تاريخ الالتحاق</th><th>تاريخ الانفكاك</th><th>المدة بالأشهر</th><th>متوسط أجر آخر سنتين (اختياري، للتعويض)</th><th style="width:60px"></th></tr></thead>
+        <tbody id="tb-ent"></tbody>
+        <tfoot><tr class="total"><td colspan="3">المجموع مع المضموم</td><td id="svc-total" class="num"></td><td></td><td></td></tr></tfoot>
+      </table></div>
+      <div style="margin-top:8px"><button type="button" data-add="ent" class="primary">+ إضافة خدمة</button></div>
+      <p class="hint" id="svc-note"></p>
+    </div>
+    <div><h2>فحص الأهلية (م54)</h2><div id="elig"></div></div>
+    <div class="bar noprint"><div class="grow">الاستعلام عن وضع المؤمن عليه من موقع المؤسسة (يلزم اتصال بالإنترنت، ويُنقل ما يظهر يدوياً)</div><button type="button" id="inq">فتح صفحة الاستعلام</button></div>
+    <p class="hint" id="inq-msg"></p>
+  </section>
+  <section class="panel" id="p-wag" role="tabpanel" hidden>
+    <p class="hint">أدخل الاشتراكات والأجور الفعلية للمؤمن عليه. تُطبَّق عليها الزيادات التشريعية آلياً من صفحة «الزيادات التشريعية الثابتة».</p>
+    <div>
+      <h2>تسلسل الأجور (حتى خمس سنوات سابقة)</h2>
+      <p class="hint">أدخل يدوياً شهر وسنة تطبيق كل أجر والأجر الشهري. يستمر كل أجر حتى بدء الأجر الذي يليه، ويستمر الأخير حتى شهر الاستحقاق.</p>
+      <p class="hint" id="wag-need"></p>
+      <div class="scroll"><table>
+        <thead><tr><th style="width:40px">#</th><th>شهر وسنة تطبيق الأجر</th><th>الأجر الشهري</th><th>الفترة (محسوبة)</th><th>عدد الأشهر</th><th style="width:60px"></th></tr></thead>
+        <tbody id="tb-wag"></tbody>
+        <tfoot><tr class="total"><td colspan="4">مجموع الأشهر المغطاة</td><td id="wag-total" class="num"></td><td></td></tr></tfoot>
+      </table></div>
+      <div id="wag-state" style="margin-top:8px"></div>
+      <div style="margin-top:8px"><button type="button" data-add="wag" class="primary">+ إضافة فترة</button></div>
+    </div>
+    </section>
+
+  <section class="panel" id="p-lv" role="tabpanel" hidden>
+    <p class="hint">أدخل تاريخ بداية الإجازة بلا أجر ونهايتها (يُحتسب يوم النهاية). تُحسب المدة بالأشهر الكاملة تلقائياً، ويُنقص عدد الأشهر المضمومة من مجموع الخدمة قبل الحساب النهائي. الأشهر المنقصة تساوي المدة الكاملة افتراضياً، ويمكنك كتابة رقم آخر لتعديلها. في المفاضلات السابقة تُنقص من الإجازة الأشهر التي تسبق تاريخ المفاضلة فقط.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>البيان</th><th>بداية الإجازة</th><th>نهاية الإجازة</th><th>المدة بالأشهر الكاملة</th><th>عدد الأشهر المضمومة (المنقصة)</th><th style="width:60px"></th></tr></thead>
+      <tbody id="tb-lv"></tbody>
+      <tfoot><tr class="total"><td colspan="4">مجموع الأشهر المنقصة</td><td id="lv-total" class="num"></td><td></td></tr></tfoot>
+    </table></div>
+    <div style="margin-top:8px"><button type="button" data-add="lv" class="primary">+ إضافة إجازة بلا أجر</button></div>
+    <p class="hint" id="lv-note"></p>
+  </section>
+
+  <section class="panel" id="p-law" role="tabpanel" hidden>
+    <p class="hint">النسب أدناه مأخوذة من القانون 92 لعام 1959 وتعديلاته (القانون 28 لعام 2014) ويُعتمد ما يُدخل في الخانات القابلة للتعديل، وتبقى القيمة الأصلية عند ترك الخانة فارغة.</p>
+    <h2>النسب القانونية المرجعية (قانون التأمينات 92 لعام 1959 وتعديلاته)</h2><div class="scroll"><table class="lawt"><thead><tr><th>البند</th><th>الحكم</th><th>المادة</th></tr></thead><tbody><tr><td>معاش الشيخوخة</td><td>2.5% من متوسط أجر السنة الأخيرة عن كل سنة اشتراك، وكسر السنة (شهر فأكثر) سنة كاملة</td><td>م56/أ</td></tr><tr><td>الحد الأعلى للمعاش</td><td>80% من متوسط الأجر المربوط عليه المعاش</td><td>م56/ب</td></tr><tr><td>ضابط التجاوز</td><td>لا يزيد الفرق أو ينقص عن 15% بين بداية ونهاية السنتين الأخيرتين، ولا عن 30% بين بداية ونهاية الخمس سنوات الأخيرة. تُضاف الزيادات التشريعية والدورية ضمن سقف الاشتراك (م73)</td><td>م56/ب + تعليمات م58</td></tr><tr><td>السنوات الزائدة عن 32</td><td>معاش شهر عن كل سنة كاملة زائدة بحد أقصى 3 معاشات، وتُهمل الكسور</td><td>م56/ح</td></tr><tr><td>الحد الأدنى للمعاش</td><td>لا يقل عن الحد الأدنى العام للأجور</td><td>م56/و</td></tr><tr><td>شروط معاش الشيخوخة</td><td>سن 60 (ذكر) / 55 (أنثى) مع 180 اشتراكاً؛ أو 55 / 50 مع 240؛ أو 300 اشتراك دون شرط السن؛ المهن الشاقة 180</td><td>م54</td></tr><tr><td>تعويض إتمام سن الستين دون شروط المعاش</td><td>15% من متوسط أجر آخر سنتين عن كل شهر اشتراك</td><td>م57</td></tr><tr><td>استقالة المؤمن عليها للزواج أو الإنجاب خلال 6 أشهر</td><td>15% عن كل شهر اشتراك</td><td>م58/أ</td></tr><tr><td>الخروج النهائي قبل سن الستين (أقل من 240 اشتراكاً)</td><td>11% (أقل من 60 اشتراكاً)، 13% (60 إلى 119)، 15% (120 إلى 239)</td><td>م58/ب</td></tr><tr><td>خدمتان متوازيتان</td><td>تنقص نسبة التعويض 3% وتُحوَّل إلى صندوق البطالة</td><td>م56/د</td></tr><tr><td>شراء الخدمات المكملة</td><td>حتى 24 اشتراكاً، بواقع 24.1% من آخر أجر خاضع، دفعة واحدة أو تقسيط سنتين بفائدة 9%</td><td>م55/ج</td></tr><tr><td>سقف الأجر المشترك عنه</td><td>عشرة أمثال سقف الفئة الأولى (ق.50 لعام 2004) والحد الأدنى العام للأجور</td><td>م73</td></tr><tr><td>الحد الأقصى لسن الاشتراك</td><td>65 سنة</td><td>م55/أ</td></tr><tr><td>الحد الأقصى لمجموع المعاشات</td><td>100% من متوسط أجر السنة الأخيرة</td><td>م97</td></tr><tr><td>الزيادة الدورية المقدّرة</td><td>9% من أجر العامل الذي مضت له سنتان دون زيادة (قانون العمل 17/2010 م95)</td><td>تعليمات م58</td></tr></tbody></table></div><h2>القيم المعتمدة في الحساب (قابلة للتعديل)</h2><div>
+      
+      <h3>جدول المعايير حسب تاريخ السريان (اختياري)</h3>
+      <p class="hint">يُطبَّق السطر ذو أحدث تاريخ سريان لا يتجاوز تاريخ الاستحقاق، وتبقى الخانة الفارغة على قيمتها الأساسية.</p>
+      <div class="scroll"><table><thead><tr><th>سريان من</th><th>سقف 5 سنوات %</th><th>سقف سنتين %</th><th>نسبة السنة %</th><th>الحد الأقصى %</th><th>سنوات الحد</th><th>سقف الاشتراك</th><th>الحد الأدنى للمعاش</th><th></th></tr></thead><tbody id="tb-law"></tbody></table></div>
+      <div style="margin-top:8px"><button type="button" data-add="law" class="primary">+ إضافة معيار</button></div>
+      <p class="hint" id="law-note"></p>
+      <div class="grid" style="margin-top:10px">
+        <div class="field"><label for="p5">نسبة التجاوز المسموح، خمس سنوات %</label><input type="number" id="p5" data-p="p5"></div>
+        <div class="field"><label for="p2">نسبة التجاوز المسموح، سنتان %</label><input type="number" id="p2" data-p="p2"></div>
+        <div class="field"><label for="rate">نسبة المعاش عن كل سنة خدمة %</label><input type="number" step="0.1" id="rate" data-p="rate"></div>
+        <div class="field"><label for="cap">الحد الأعلى للمعاش من المتوسط %</label><input type="number" id="cap" data-p="cap"></div>
+        <div class="field"><label for="maxY">الحد الأقصى لسنوات الخدمة (فوقه تُهمل الكسور ويُمنح تعويض)</label><input type="number" id="maxY" data-p="maxY"></div>
+        
+        <div class="field"><label for="wageCap">سقف الاشتراك (م73)، اتركه فارغاً لعدم التطبيق</label><input type="number" id="wageCap" data-p="wageCap" min="0"></div>
+        <div class="field"><label for="minPen">الحد الأدنى العام للأجور (حد أدنى للمعاش، م56/و)</label><input type="number" id="minPen" data-p="minPen" min="0"></div>
+      </div>
+    </div><div class="grid"><div class="field"><label for="c57">نسبة تعويض م57 (إتمام الستين) %</label><input type="number" step="any" id="c57" data-p="c57"></div><div class="field"><label for="c58a">نسبة تعويض م58/أ (زواج أو إنجاب) %</label><input type="number" step="any" id="c58a" data-p="c58a"></div><div class="field"><label for="c58b1">م58/ب: أقل من 60 اشتراكاً %</label><input type="number" step="any" id="c58b1" data-p="c58b1"></div><div class="field"><label for="c58b2">م58/ب: من 60 إلى 119 اشتراكاً %</label><input type="number" step="any" id="c58b2" data-p="c58b2"></div><div class="field"><label for="c58b3">م58/ب: من 120 إلى 239 اشتراكاً %</label><input type="number" step="any" id="c58b3" data-p="c58b3"></div><div class="field"><label for="cut">إنقاص النسبة للخدمة المتوازية %</label><input type="number" step="any" id="cut" data-p="cut"></div><div class="field"><label for="buy">نسبة اشتراك شراء الخدمة (م55/ج) %</label><input type="number" step="any" id="buy" data-p="buy"></div></div>
+  </section>
+
+  <section class="panel" id="p-hdr" role="tabpanel" hidden>
+    <p class="hint">تُضاف الترويسة وفقرة التوجيه إلى التقرير المفصل وتقرير الجهاز وتقرير التعويض. سطور الترويسة تُحفظ على هذا الجهاز ولا تُمسح بـ «مسح الكل». عبارة «نحيل إليكم ملف المؤمن عليه ... المشترك لدينا بالرقم ...» تُكتب آلياً من بيانات المؤمن عليه.</p>
+    <label class="noprint"><input type="checkbox" id="h-on" data-h="on"> إضافة الترويسة وفقرة التوجيه إلى التقارير</label>
+    <div class="grid">
+      <div class="field" style="grid-column: 1 / -1"><label for="h-lines">سطور الترويسة (كل سطر في سطر)</label><textarea id="h-lines" data-h="lines" rows="4"></textarea></div>
+      <div class="field" style="grid-column: 1 / -1"><label for="q-to">التقرير موجه إلى</label><input type="text" id="q-to" data-q="to"></div>
+      <div class="field" style="grid-column: 1 / -1"><label for="q-subj">سطر الموضوع في تقريري التجاوز والجهاز</label><input type="text" id="q-subj" data-q="subj" placeholder="حساب تجاوز الأجور وفق المادة 56 (ب) من القانون 92 لعام 1959 وتعديلاته"></div>
+      <div class="field" style="grid-column: 1 / -1"><label for="q-subjc">سطر الموضوع في تقرير التعويض</label><input type="text" id="q-subjc" data-q="subjC" placeholder="حساب تعويض الدفعة الواحدة وفق المادة 58 (ب) من القانون 92 لعام 1959 وتعديلاته"></div>
+      <div class="field"><label for="q-date">تاريخ التقرير (اتركه فارغاً لاستخدام تاريخ اليوم)</label><input type="date" id="q-date" data-q="date"></div>
+      <div class="field" style="grid-column: 1 / -1"><b>أسماء التواقيع</b> <span class="hint">(تُحفظ على هذا الجهاز وتظهر تحت الصفات في تقريري الجهاز والتعويض)</span></div>
+      <div class="field"><label for="h-emp">اسم الموظف المختص</label><input type="text" id="h-emp" data-h="emp"></div>
+      <div class="field"><label for="h-div">اسم رئيس الشعبة</label><input type="text" id="h-div" data-h="div"></div>
+      <div class="field"><label for="h-dept">اسم رئيس الدائرة</label><input type="text" id="h-dept" data-h="dept"></div>
+    </div>
+  </section>
+
+
+  <!-- تشريعية -->
+  <section class="panel" id="p-ref" role="tabpanel" hidden>
+    <p class="hint">تُدخل الزيادات التشريعية هنا مرة واحدة لأنها تسري على جميع المؤمن عليهم وتُعد قاعدة قانونية ثابتة. هذا جدول مشترك بين كل الملفات (لا يُحفظ مع سجل المؤمن عليه ويُحفظ تلقائياً على هذا الجهاز). تُستورد منه الزيادات التشريعية في صفحة «الزيادات التشريعية»، ويُستخدم أحدث «حد أدنى للأجور» يبدأ تطبيقه في شهر الاستحقاق أو قبله حداً أدنى للمعاش (م56/و) ما لم يُدخل الحد يدوياً في «المعايير القانونية». عمود «تاريخ مفاضلة»: الزيادات المؤشَّر عليها تُعدّ تواريخ مفاضلة (تاريخ الاستحقاق الافتراضي لكل منها أول شهر بدء تطبيقها)، ويُحسب المعاش عند كل تاريخ منها ثم يُقارن بالمعاش بتاريخ الاستحقاق الفعلي ويُقرَّر الأعلى (انظر تبويب «تقرير المفاضلة»).</p>
+    <div class="scroll"><table>
+      <thead><tr><th>الصك (رقم/بيان)</th><th>تاريخ الصدور</th><th>بدء التطبيق</th><th style="width:110px">نسبة الزيادة %</th><th>الحد الأدنى للأجور</th><th style="width:90px">تاريخ مفاضلة</th><th style="width:60px"></th></tr></thead>
+      <tbody id="tb-ref"></tbody>
+    </table></div>
+    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px">
+      <button type="button" data-add="ref" class="primary">+ إضافة صك</button>
+      <button type="button" data-xt="ref" data-k="excel">تصدير Excel</button><button type="button" data-xt="ref" data-k="word">تصدير Word</button><button type="button" class="ghost" data-prt="1">طباعة</button>
+      <button type="button" id="ref-imp" class="ghost">استيراد الجدول</button>
+      <button type="button" id="ref-def" class="ghost">استعادة الافتراضي</button>
+      <input type="file" id="ref-file" accept=".xls,.doc,.html,.htm,.csv,.json" hidden>
+    </div>
+    <p class="hint" id="ref-msg"></p>
+  </section>
+
+  <section class="panel" id="p-leg" role="tabpanel" hidden>
+    <label class="noprint"><input type="checkbox" id="leg-imp" data-gb="legImport"> تطبيق آلي: تُستورد الزيادات من «الزيادات التشريعية الثابتة» وتُحسب مبالغها على أجور هذا المؤمن عليه من «الاشتراكات والأجور الفعلية» (تُهمل الزيادة التي تسبق بدء أجوره). ألغِ التأشير للإدخال اليدوي</label>
+    <p class="hint">أدخل نسبة الزيادة وشهر بدء الصرف. مبلغ الزيادة = النسبة × أجر الشهر السابق لشهر البدء (من جدول الأجور)، ويُهمل الكسر.</p>
+    <div class="scroll"><table class="legt">
+      <colgroup><col style="width:20%"><col style="width:10%"><col style="width:15%"><col style="width:14%"><col style="width:13%"><col style="width:20%"><col style="width:8%"></colgroup>
+      <thead><tr><th>البيان</th><th>النسبة %</th><th>شهر بدء الصرف</th><th>الأجر قبل الزيادة</th><th>مبلغ الزيادة</th><th>ملاحظة</th><th></th></tr></thead>
+      <tbody id="tb-leg"></tbody>
+    </table></div>
+    <div class="expbar noprint"><button type="button" id="leg-add" data-add="leg" class="primary">+ إضافة زيادة تشريعية</button>
+      <button type="button" data-xt="leg" data-k="excel">تصدير Excel</button><button type="button" data-xt="leg" data-k="word">تصدير Word</button><button type="button" class="ghost" data-prt="leg">طباعة</button></div>
+  </section>
+
+  <!-- دورية -->
+  <section class="panel" id="p-per" role="tabpanel" hidden>
+    <label class="noprint"><input type="checkbox" id="per-auto" data-pa="auto"> توليد آلي: تُدرج زيادة دورية بعد سنتين كاملتين من التاريخ المرجعي (صفحة بيانات المؤمن عليه) ثم كل سنتين كاملتين حتى تاريخ الانفكاك، وتُهمل الفترة الأخيرة إن كانت أقل من سنتين. وعند عدم إدخال تاريخ مرجعي تُحسب من شهر بدء تطبيق أجر بداية الحساب. يمكن تعديل أي سطر أو حذفه، ولا يُستبدل السطر المعدَّل بعد ذلك.</label>
+    <div class="grid noprint"><div class="field"><label for="per-rate">نسبة الزيادة الدورية الآلية %</label><input type="number" id="per-rate" min="0" step="0.1" data-pa="rate"></div><div class="field" style="justify-content:flex-end"><button type="button" id="per-regen" class="ghost">إعادة التوليد (يستعيد المحذوف)</button></div></div>
+    <p class="hint">أدخل يدوياً تاريخ الاستحقاق وشهر بدء الصرف، أو اعتمد التوليد الآلي أعلاه. النسبة الافتراضية 9% مستخلصة من أمثلة التعميم ويمكن تعديلها. المبلغ = النسبة × أجر الشهر السابق لشهر البدء. الزيادة «الاستثنائية»: اختر نوعها «استثنائية (مبلغ)» واكتب مبلغها يدوياً في خانة «مبلغ الزيادة»؛ تُضاف كما هي إلى سقف الخمس سنوات وسقف السنتين (إن وقع شهر بدئها ضمن نافذتيهما) دون تطبيق أي نسبة عليها.</p>
+    <div class="scroll"><table>
+      <thead><tr><th>البيان</th><th style="width:150px">تاريخ الاستحقاق</th><th style="width:150px">شهر بدء الصرف</th><th style="width:140px">النوع</th><th style="width:90px">النسبة %</th><th>الأجر قبل الزيادة</th><th>مبلغ الزيادة</th><th style="width:60px"></th></tr></thead>
+      <tbody id="tb-per"></tbody>
+    </table></div>
+    <div class="expbar noprint"><button type="button" data-add="per" class="primary">+ إضافة زيادة دورية</button><button type="button" data-add="perx" class="primary">+ إضافة زيادة استثنائية (مبلغ)</button><button type="button" data-xt="per" data-k="excel">تصدير Excel</button><button type="button" data-xt="per" data-k="word">تصدير Word</button><button type="button" class="ghost" data-prt="1">طباعة</button></div>
+  </section>
+
+  <!-- النتيجة -->
+  <section class="panel" id="p-res" role="tabpanel" hidden>
+    <div id="res"></div>
+    <div class="noprint" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center">
+      <button type="button" class="primary" id="copy">نسخ ملخص النتيجة</button>
+      <span class="hint" id="copied"></span>
+    </div>
+  </section>
+
+  <!-- التقرير -->
+  <section class="panel" id="p-rep" role="tabpanel" hidden>
+    <div class="noprint" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center">
+      <button type="button" class="primary" id="print" hidden>تصدير PDF</button><button type="button" class="primary" data-exp="word" data-src="rep">تصدير Word</button><button type="button" class="primary" data-exp="excel" data-src="rep">تصدير Excel</button><button type="button" class="ghost" data-prt="1">طباعة</button>
+      <span class="hint" id="printnote"></span>
+    </div>
+    <article class="paper" id="rep"></article>
+  </section>
+
+  <!-- تقرير المفاضلة -->
+  <section class="panel" id="p-mf" role="tabpanel" hidden>
+    <div class="noprint" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center">
+      <label><input type="checkbox" id="mf-on" data-gb="mfOn"> تطبيق المفاضلة على هذا الملف</label>
+      <label><input type="checkbox" id="mf-ovr" data-gb="mfOvr"> تطبيق قاعدة التجاوز أيضاً على المفاضلات السابقة (بسقوف تواريخها)</label>
+      <button type="button" class="primary" id="print4" hidden>تصدير PDF</button><button type="button" class="primary" data-exp="word" data-src="mf">تصدير Word</button><button type="button" class="primary" data-exp="excel" data-src="mf">تصدير Excel</button><button type="button" class="ghost" data-prt="1">طباعة</button>
+      <span class="hint" id="printnote4"></span>
+    </div>
+    <p class="hint noprint">تُحسب المفاضلة عند كل «تاريخ مفاضلة» يسبق الاستحقاق الفعلي (تُحدَّد في تبويب «الزيادات التشريعية الثابتة»)، ويُقرَّر الأعلى. التقرير على نمط أمثلة التعميم، ويصلح لجميع الحالات (إن لم توجد مفاضلة يُعتمد الاستحقاق الفعلي).</p>
+    <article class="paper" id="mf"></article>
+  </section>
+
+  <!-- تقرير الجهاز -->
+  <section class="panel" id="p-org" role="tabpanel" hidden>
+    <div class="noprint" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center">
+      <button type="button" class="primary" id="print2" hidden>تصدير PDF</button><button type="button" class="primary" data-exp="word" data-src="org">تصدير Word</button><button type="button" class="primary" data-exp="excel" data-src="org">تصدير Excel</button><button type="button" class="ghost" data-prt="1">طباعة</button>
+      <span class="hint" id="printnote2"></span>
+    </div>
+    <article class="paper org" id="org"></article>
+  </section>
+
+  <!-- تعويض الدفعة الواحدة -->
+  <section class="panel" id="p-cmp" role="tabpanel" hidden>
+    <div class="noprint" style="display:flex; gap:12px; flex-wrap:wrap; align-items:flex-end">
+      <div class="field"><label for="c-kind">حالة الاستحقاق</label><select id="c-kind" data-c="kind">
+        <option value="leave">خروج نهائي قبل سن الستين بأقل من 240 اشتراكاً (م58/ب)</option>
+        <option value="age60">انتهاء الخدمة لإتمام سن الستين دون شروط المعاش (م57)</option>
+        <option value="female">مؤمن عليها استقالت للزواج أو الإنجاب خلال 6 أشهر (م58/أ)</option></select></div>
+      <div class="field"><label for="c-par2"><input type="checkbox" id="c-par2" data-c="par2"> خدمة ثانية متوازية (تنقص النسبة 3%، م56/د)</label></div>
+      <div class="field"><label for="c-bonus">مكافأة نهاية الخدمة عن المدة السابقة (م70)</label><input type="number" id="c-bonus" data-c="bonus" min="0"></div>
+      <button type="button" class="primary" id="print3" hidden>تصدير PDF</button><button type="button" class="primary" data-exp="word" data-src="cmp">تصدير Word</button><button type="button" class="primary" data-exp="excel" data-src="cmp">تصدير Excel</button><button type="button" class="ghost" data-prt="1">طباعة</button>
+      <span class="hint" id="printnote3"></span>
+    </div>
+    <article class="paper org" id="cmp"></article>
+  </section>
+  <footer class="appfoot noprint">الحقوق محفوظة فرع دمشق 2026 · طور بواسطة Sh.Bek<div class="credit">النسخة التجريبية لحساب التجاوز · أعد هذا الملف بواسطة شادي بكسراوي · للتواصل: <span class="num">0988816271</span></div></footer>
+</div>
+
+<script>
+(function () {
+  var fl = function (x) { return Math.floor(x + 1e-7); };
+  var nf = function (x) { return Math.round(x).toLocaleString('en-US'); };
+  var ymOf = function (s) { if (!s) return null; var p = s.slice(0, 7).split('-'); var y = +p[0], m = +p[1]; return (y && m) ? y * 12 + m - 1 : null; };
+  var lab = function (i) { return Math.floor(i / 12) + '/' + String(i % 12 + 1).padStart(2, '0'); };
+  var lastDay = function (x) { var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(x || ''); return !!m && (+m[3] === new Date(+m[1], +m[2], 0).getDate()); };
+  var ymStr = function (i) { return Math.floor(i / 12) + '-' + String(i % 12 + 1).padStart(2, '0'); };
+  var esc = function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;'); };
+  var $ = function (id) { return document.getElementById(id); };
+
+  var EX1 = {
+    note: 'مثال 1 من التعميم', entitle: '2025-04-03', added: 24,
+    ents: [['المؤسسة العامة للاتصالات', '2000-01-24', '2022-08-04'], ['الشركة السورية للاتصالات', '2022-08-05', '2025-04-03'], ['', '', '']],
+    wages: [[9, 69580], [7, 69580], [5, 104370], [7, 138025], [5, 138025], [8, 138025], [4, 276050], [2, 279737], [5, 419606], [5, 559471], [3, 559471]],
+    leg: [['زيادة 2021/8', 50, '2021-08'], ['زيادة 2022/1', 30, '2022-01'], ['زيادة 2023/9', 100, '2023-09'], ['زيادة 2024/3', 50, '2024-03']],
+    per: [['دورية 2024/8', '2024-08-05', '2024-08', 9]], expect: 318273
+  };
+  var EX2 = {
+    note: 'مثال 2 من التعميم', entitle: '2025-03-18', added: 0,
+    ents: [['المؤسسة العامة للاتصالات', '1987-08-15', '2020-11-29'], ['الشركة السورية للاتصالات', '2020-11-30', '2025-03-18'], ['', '', '']],
+    wages: [[10, 70780], [7, 75097], [5, 112646], [12, 146440], [8, 170984], [4, 341968], [2, 355647], [10, 533470], [2, 604742]],
+    leg: [['زيادة 2021/8', 50, '2021-08'], ['زيادة 2022/1', 30, '2022-01'], ['زيادة 2023/9', 100, '2023-09'], ['زيادة 2024/3', 50, '2024-03']],
+    per: [['دورية 2022/11', '2022-11-20', '2022-11', 9], ['دورية 2024/11', '2024-11-20', '2024-11', 9]], expect: 427757
+  };
+
+  var REF_DEF = [
+    { n: 'زيادة 2021/8', issued: '', s: '2021-08', p: 50, minw: '', mf: false }, { n: 'زيادة 2022/1', issued: '', s: '2022-01', p: 30, minw: '', mf: false },
+    { n: 'زيادة 2023/9', issued: '', s: '2023-09', p: 100, minw: '', mf: true }, { n: 'زيادة 2024/3', issued: '', s: '2024-03', p: 50, minw: '', mf: true }];
+  function isMf(r) { return typeof r.mf === 'boolean' ? r.mf : (r.s === '2023-09' || r.s === '2024-03'); }
+  var REF = { leg: JSON.parse(JSON.stringify(REF_DEF)) }, REFKEY = 'ovr56:ref';
+  try { var rs0 = JSON.parse(localStorage.getItem(REFKEY) || 'null'); if (rs0 && Array.isArray(rs0.leg)) REF = rs0; } catch (e) {}
+  function refSave() { try { localStorage.setItem(REFKEY, JSON.stringify(REF)); } catch (e) {} }
+  function legList() { return S.legImport === false ? S.leg : REF.leg; }
+  var S, exNote = '', exExpect = null, last = null;
+  var DEFPAR = { c57: 15, c58a: 15, c58b1: 11, c58b2: 13, c58b3: 15, cut: 3, buy: 24.1 };
+  function pv(k) { var v = (S && S.par) ? S.par[k] : ''; return (v === '' || v == null || isNaN(+v)) ? DEFPAR[k] : +v; }
+  var HKEY = 'ovr56:hdr', H = { on: false, emp: '', div: '', dept: '', lines: 'الجمهورية العربية السورية\nالمؤسسة العامة للتأمينات الاجتماعية\nفرع ...........' };
+  try { var h0 = JSON.parse(localStorage.getItem(HKEY) || 'null'); if (h0) H = Object.assign(H, h0); } catch (e) {}
+  function hSave() { try { localStorage.setItem(HKEY, JSON.stringify(H)); } catch (e) {} }
+  function rp() { return S.rpt || (S.rpt = { to: '', subj: '', subjC: '' }); }
+
+  /* ---------- أدوات مشتركة: التاريخ، التذييل، التواقيع، التجميع، الترتيب ---------- */
+  function repDate() {
+    var q = rp(); if (q.date) return q.date.replace(/-/g, '/');
+    var n = new Date(); return n.getFullYear() + '/' + String(n.getMonth() + 1).padStart(2, '0') + '/' + String(n.getDate()).padStart(2, '0');
+  }
+  function metaHtml() { return H.on ? '' : '<div class="meta">تاريخ التقرير: <span class="num">' + repDate() + '</span></div>'; }
+  function footHtml() { return '<div class="orgfoot">الحقوق محفوظة فرع دمشق 2026<br>طور بواسطة Sh.Bek<br>النسخة التجريبية لحساب التجاوز · أعد هذا الملف شادي بكسراوي · للتواصل 0988816271</div>'; }
+  function sigHtml(kind) {
+    var dept = kind === 'c' ? 'رئيس دائرة المعاشات' : 'رئيس دائرة إصدار المعاشات';
+    var nm = function (x) { return '<span class="nm">' + (x ? esc(x) : '&nbsp;') + '</span>'; };
+    return '<table class="sigtbl"><tr><td>الموظف المختص' + nm(H.emp) + '</td><td>رئيس شعبة الإصدار' + nm(H.div) + '</td><td>' + dept + nm(H.dept) + '</td></tr></table>';
+  }
+  var grpNote = '<p class="hint" style="margin:4px 0 0">تُجمَّع الأشهر المتشابهة ضمن السنة الواحدة في سطر واحد، والقيم المعروضة هي قيمة الشهر الواحد، والمجموع محسوب على كامل الأشهر.</p>';
+  function grpRows(rows, keys) {
+    var g = [];
+    rows.forEach(function (r) {
+      var sig = keys.map(function (k) { return r[k]; }).join(',') + '|' + Math.floor(r.t / 12), l = g[g.length - 1];
+      if (l && l.k === sig && r.t === l.to + 1) { l.to = r.t; l.n++; } else g.push({ k: sig, from: r.t, to: r.t, n: 1, r: r });
+    });
+    return g.map(function (x) {
+      var r = x.r;
+      return '<tr class="' + (r.ex > 0 ? 'over' : '') + '"><td class="num">' + (x.n > 1 ? lab(x.from) + ' → ' + lab(x.to) : lab(x.from)) + '</td><td class="num">' + x.n + '</td>' +
+        keys.map(function (k) { var v = r[k]; return '<td class="num">' + (k === 'ex' ? (v > 0 ? nf(v) : '-') : (k === 'ap' ? '<b>' + nf(v) + '</b>' : nf(v))) + '</td>'; }).join('') + '</tr>';
+    }).join('');
+  }
+  function srt(arr, key) {
+    var before = arr.slice(), a = arr.map(function (x, i) { return [x, i]; });
+    a.sort(function (p, q) { var u = p[0][key] || '', v = q[0][key] || ''; if (u === v) return p[1] - q[1]; if (!u) return 1; if (!v) return -1; return u < v ? -1 : 1; });
+    a.forEach(function (x, i) { arr[i] = x[0]; });
+    return before.some(function (x, i) { return x !== arr[i]; });
+  }
+  function sortAll() {
+    var c = false;
+    c = srt(S.ents, 'a') || c; c = srt(S.leaves = S.leaves || [], 'a') || c; c = srt(S.wages, 's') || c; c = srt(S.per, 's') || c; c = srt(S.leg, 's') || c;
+    c = srt(S.laws = S.laws || [], 'from') || c; c = srt(REF.leg, 's') || c;
+    if (c) refSave();
+    return c;
+  }
+  function exportDoc(kind, src) {
+    var names = { rep: 'detailed-report', org: 'organ-report', cmp: 'compensation-report', mf: 'differentiation-report' }, isX = kind === 'excel';
+    var box = document.createElement('div'); box.innerHTML = $(src).innerHTML.replace(/var\(--paper-mute\)/g, '#4a5a66');
+    if (isX) Array.prototype.forEach.call(box.querySelectorAll('td,th'), function (c) { if (!/^-?[\d,]+(\.\d+)?%?$/.test(c.textContent.trim())) c.setAttribute('style', 'mso-number-format:"\\@"'); });
+    var css = 'body{font-family:Arial,Tahoma,sans-serif;direction:rtl}table{border-collapse:collapse;width:100%}th,td{border:1px solid #888;padding:4px;text-align:center}th{background:#eef2f5}tr.over td{background:#fbe6d6}tr.total td{background:#eef2f5;font-weight:bold}h3{text-align:center}h4{border-bottom:2px solid #111;margin-top:14pt}.letterhead{text-align:right;font-weight:bold;border-bottom:2px solid #111}.letter .to{text-align:center;font-size:20pt;font-weight:bold}.subj{text-align:center;font-weight:bold;text-decoration:underline}.note{border:1px solid #111;padding:6px;font-weight:bold}.meta{text-align:center}.idgrid div{margin:2px 0}.orgfoot{text-align:center;color:#4a5a66;border-top:1px solid #aaa}.sigtbl td{border:0;height:80px;vertical-align:top;font-weight:bold}.sigtbl .nm{display:block}';
+    var xmlHead = isX ? '<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>التقرير</x:Name><x:WorksheetOptions><x:DisplayRightToLeft/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->' : '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->';
+    var ns = 'xmlns:o="urn:schemas-microsoft-com:office:office" ' + (isX ? 'xmlns:x="urn:schemas-microsoft-com:office:excel"' : 'xmlns:w="urn:schemas-microsoft-com:office:word"') + ' xmlns="http://www.w3.org/TR/REC-html40"';
+    var html = '<html ' + ns + ' dir="rtl" lang="ar"><head><meta charset="utf-8"><title>تقرير</title>' + xmlHead + '<style>' + css + '</style></head><body dir="rtl">' + box.innerHTML + '</body></html>';
+    var blob = new Blob(['\ufeff' + html], { type: isX ? 'application/vnd.ms-excel' : 'application/msword' });
+    var a = document.createElement('a'), no = norm(S.ins.no);
+    a.href = URL.createObjectURL(blob); a.download = names[src] + (no ? '-' + no : '') + (isX ? '.xls' : '.doc');
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+  function hdrHtml(kind) {
+    if (!H.on) return '';
+    var I = S.ins, q = rp(), d = '..............';
+    var subj = (kind === 'c' ? q.subjC : q.subj) || (kind === 'c' ? 'حساب تعويض الدفعة الواحدة وفق المادة 58 (ب) من القانون 92 لعام 1959 وتعديلاته' : (kind === 'm' ? 'حساب المعاش بالمفاضلة وتجاوز الأجور وفق المادة 56 (ب) من القانون 92 لعام 1959 وتعديلاته' : 'حساب تجاوز الأجور وفق المادة 56 (ب) من القانون 92 لعام 1959 وتعديلاته'));
+    return '<div class="letterhead">' + String(H.lines || '').split('\n').map(function (l) { return '<div>' + esc(l) + '</div>'; }).join('') + '<div class="lhdate">التاريخ: <span class="num">' + repDate() + '</span></div></div>' +
+      '<div class="letter"><div class="to">إلى: <b>' + (q.to ? esc(q.to) : d) + '</b></div><div>تحية طيبة وبعد،</div>' +
+      '<div>نحيل إليكم ملف المؤمن عليه <b>' + (I.name ? esc(I.name) : d) + '</b> المشترك لدينا بالرقم <b class="num">' + (I.no ? esc(I.no) : d) + '</b> وفق ما يلي:</div>' +
+      '<div class="subj">' + esc(subj) + '</div></div>';
+  }
+
+  function load(ex) {
+    S = {
+      entitle: ex.entitle, added: ex.added,
+      ents: ex.ents.map(function (r) { return { n: r[0], a: r[1], b: r[2] }; }),
+      wages: (function () { var c = ymOf(ex.entitle) - 60; return ex.wages.map(function (r) { var st = ymStr(c); c += r[0]; return { s: st, w: r[1] }; }); })(),
+      leg: ex.leg.map(function (r) { return { n: r[0], p: r[1], s: r[2] }; }),
+      per: ex.per.map(function (r) { return { n: r[0], d: r[1], s: r[2], p: r[3] }; }),
+      par: { p5: 30, p2: 15, rate: 2.5, cap: 80, maxY: 32, compBase: 'pension', wageCap: '', minPen: '' }, laws: []
+    };
+    S.ins = { name: '', no: '', sub: ex.ents[0][1], sep: ex.entitle, pay: '' };
+    S.cmp = { kind: 'leave', par2: false, bonus: '' }; S.legImport = false; S.perAuto = false; S.perRate = 9; S.perSkip = [];
+    exNote = ex.note; exExpect = ex.expect;
+  }
+  function blank() {
+    S = {
+      entitle: '', added: '', par: { p5: 30, p2: 15, rate: 2.5, cap: 80, maxY: 32, compBase: 'pension', wageCap: '', minPen: '' }, laws: [],
+      ents: [{ n: '', a: '', b: '' }, { n: '', a: '', b: '' }, { n: '', a: '', b: '' }],
+      wages: [{ s: '', w: '' }], leg: [{ n: '', p: '', s: '' }], per: [], perAuto: true, perRate: 9, perSkip: []
+    };
+    S.ins = { name: '', no: '', sub: '', sep: '', pay: '' };
+    S.cmp = { kind: 'leave', par2: false, bonus: '' }; S.legImport = true;
+    exNote = ''; exExpect = null;
+  }
+
+  /* ---------- الحساب ---------- */
+  function calc() {
+    var par = Object.assign({}, S.par), lw = null, E0 = ymOf(S.entitle);
+    (S.laws || []).forEach(function (l) { var fr = ymOf(l.from); if (fr != null && E0 != null && fr <= E0 && (lw == null || fr > ymOf(lw.from))) lw = l; });
+    if (lw) ['p5', 'p2', 'rate', 'cap', 'maxY', 'wageCap', 'minPen'].forEach(function (k) { if (lw[k] !== '' && lw[k] != null) par[k] = lw[k]; });
+    var p5 = +par.p5 || 0, p2 = +par.p2 || 0, rate = +par.rate || 0, cap = +par.cap || 0;
+    var R = { par: par, law: lw, legAmt: [], legSkip: [], legNote: [], perAmt: [], legBefore: [], perBefore: [], segs: [], entM: [] };
+
+    var tm = +S.added || 0, actM = 0, maxY = +par.maxY || 32, mset = {};
+    S.ents.forEach(function (r, i) {
+      var a = ymOf(r.a), b = ymOf(r.b), m = null;
+      if (a != null && b != null) { var bb = b + (lastDay(r.b) ? 1 : 0); m = Math.max(0, bb - a); for (var x = a; x < bb; x++) mset[x] = 1; }
+      R.entM[i] = m;
+    });
+    actM = Object.keys(mset).length; tm += actM; var lvs = lvTotal(); R.leaveM = lvs; tm = Math.max(0, tm - lvs);
+    R.tm = tm; R.years = Math.floor(tm / 12); R.rem = tm % 12; R.maxY = maxY;
+    R.over32 = tm > maxY * 12;
+    R.yrsUsed = tm > 0 ? (R.over32 ? R.years : R.years + (R.rem > 0 ? 1 : 0)) : 0;
+    R.extraY = R.over32 ? Math.max(0, R.years - maxY) : 0; R.compM = Math.min(R.extraY, 3);
+    R.need = actM > 0 ? Math.min(60, actM) : 60;
+
+    var E = ymOf(S.entitle); if (E != null && lastDay(S.entitle)) E += 1;
+    R.E = E;
+    if (E == null) { R.err = 'أدخل تاريخ الاستحقاق الفعلي في صفحة الاشتراكات والأجور.'; return R; }
+    var W5 = E - 60, W2 = E - 24; R.W5 = W5; R.W2 = W2;
+
+    var sr = [];
+    S.wages.forEach(function (r, i) { var st = ymOf(r.s); if (st != null) sr.push({ i: i, from: st, w: +r.w || 0 }); });
+    sr.sort(function (a, b) { return a.from - b.from; });
+    R.segByIdx = {};
+    sr.forEach(function (g, k) { g.to = Math.max(g.from, k + 1 < sr.length ? sr[k + 1].from : E); g.m = g.to - g.from; R.segs.push(g); R.segByIdx[g.i] = g; });
+    R.firstStart = sr.length ? sr[0].from : null;
+    R.covered = R.segs.reduce(function (a, g) { return a + g.m; }, 0);
+    var wcap = +par.wageCap || 0;
+    var wageAt = function (t) {
+      var w = R.segs.length ? R.segs[0].w : 0;
+      for (var k = 0; k < R.segs.length; k++) { if (R.segs[k].from <= t) w = R.segs[k].w; else break; }
+      return wcap && w > wcap ? wcap : w;
+    };
+    R.wageAt = wageAt;
+
+    var incs = [], refM = ymOf(S.refDate);
+    legList().forEach(function (r, i) {
+      var s = ymOf(r.s);
+      if (s == null || r.p === '' || r.p == null) { R.legAmt[i] = null; return; }
+      if (S.legImport !== false && (S.stateTbl === false || (refM != null && s <= refM) || (R.firstStart != null && s - 1 < R.firstStart))) {
+        R.legAmt[i] = null; R.legSkip[i] = true;
+        R.legNote[i] = S.stateTbl === false ? 'لا يستفيد منها: الجهة لا تعتمد جداول الأجور الملحقة بالقانون 50/2004.' : ((refM != null && s <= refM) ? 'لا يستفيد منها: بدأ صرفها قبل التاريخ المرجعي أو معه، وتطبق الزيادات التشريعية بعده فقط.' : 'لا يستفيد منها: بدأ صرفها قبل بداية أجور المؤمن عليه.');
+        return;
+      }
+      var b = wageAt(s - 1), amt = fl(b * (+r.p) / 100);
+      R.legBefore[i] = b; R.legAmt[i] = amt;
+      if (s <= W5) R.legNote[i] = 'لا يستفيد منها في السقف: بدأ صرفها قبل نافذة الحساب أو معها، وأجر بداية الحساب يتضمنها.';
+      else if (s > E - 1) R.legNote[i] = 'لا يستفيد منها: تبدأ في شهر الاستحقاق أو بعده.';
+      incs.push({ k: 'تشريعية', n: r.n || 'زيادة تشريعية', s: s, amt: amt, p: r.p });
+    });
+    S.per.forEach(function (r, i) {
+      var s = ymOf(r.s);
+      if (r.t === 'exc') {
+        var ea = fl(+r.amt || 0);
+        if (s == null || !(ea > 0)) { R.perAmt[i] = null; return; }
+        R.perBefore[i] = null; R.perAmt[i] = ea;
+        incs.push({ k: 'استثنائية', n: r.n || 'زيادة استثنائية', s: s, amt: ea, p: null, exc: true });
+        return;
+      }
+      if (s == null || r.p === '' || r.p == null) { R.perAmt[i] = null; return; }
+      var b = wageAt(s - 1), amt = fl(b * (+r.p) / 100);
+      R.perBefore[i] = b; R.perAmt[i] = amt;
+      incs.push({ k: 'دورية', n: r.n || 'زيادة دورية', s: s, amt: amt, p: r.p });
+    });
+    R.incs = incs;
+
+    R.base5 = wageAt(W5); R.base2 = wageAt(W2);
+    R.c5base = fl(R.base5 * (100 + p5) / 100);
+    R.c2base = fl(R.base2 * (100 + p2) / 100);
+    var sumInc = function (from, t) { return incs.filter(function (x) { return x.s > from && x.s <= t; }).reduce(function (a, x) { return a + x.amt; }, 0); };
+    R.incIn = function (from, t) { return incs.filter(function (x) { return x.s > from && x.s <= t; }); };
+
+    R.rows = []; var sumA = 0, sumC = 0;
+    for (var t = E - 12; t < E; t++) {
+      var act = wageAt(t), c5 = R.c5base + sumInc(W5, t), c2 = R.c2base + sumInc(W2, t), c = Math.min(c5, c2), ap = S.noOvr ? act : Math.min(act, c);
+      R.rows.push({ t: t, act: act, c5: c5, c2: c2, c: c, ap: ap, ex: act - ap });
+      sumA += act; sumC += ap;
+    }
+    R.actM = actM; R.rows24 = []; var n24 = actM > 0 ? Math.min(24, actM) : 24, s24 = 0;
+    var sA24 = 0, ov24 = false;
+    for (var u = E - n24; u < E; u++) { var a24 = wageAt(u), k5 = R.c5base + sumInc(W5, u), k2 = R.c2base + sumInc(W2, u), cc = Math.min(k5, k2); s24 += Math.min(a24, cc); R.rows24.push({ t: u, act: a24, c: cc, ap: Math.min(a24, cc), ex: Math.max(0, a24 - cc) }); sA24 += a24; if (a24 > cc) ov24 = true; }
+    R.n24 = n24; R.avg24 = fl(s24 / n24); R.avgAct24 = fl(sA24 / n24); R.anyOver24 = ov24;
+    var lr = R.rows[R.rows.length - 1];
+    R.lastAct = lr.act; R.lastCeil = lr.c; R.lastC5 = lr.c5; R.lastC2 = lr.c2;
+    R.avg = fl(sumC / 12); R.avgAct = fl(sumA / 12);
+    R.rateUsed = Math.min(R.yrsUsed * rate, cap);
+    R.pension = fl(R.avg * R.rateUsed / 100);
+    R.pensionNoCap = fl(R.avgAct * R.rateUsed / 100);
+    R.loss = R.pensionNoCap - R.pension;
+    var mpAuto = 0, mpBest = null;
+    if (E0 != null) REF.leg.forEach(function (r) { var st = ymOf(r.s), mw = +r.minw || 0; if (mw > 0 && st != null && st <= E0 && (mpBest == null || st > mpBest)) { mpBest = st; mpAuto = mw; } });
+    R.minSrc = +par.minPen ? 'يدوي' : (mpAuto ? 'الجدول الثابت' : '');
+    var mp = +par.minPen || mpAuto; R.minApplied = mp > 0 && R.pension < mp; if (R.minApplied) R.pension = mp;
+    R.comp = R.compM * R.pension; /* م56/ح: معاش شهر عن كل سنة زائدة */
+    R.over = R.lastAct > R.lastCeil ? R.lastAct - R.lastCeil : 0;
+    R.anyOver = R.rows.some(function (r) { return r.ex > 0; });
+    R.rate = rate; R.cap = cap;
+    return R;
+  }
+
+  /* ---------- الإجازات بلا أجر ---------- */
+  function lvFull(l) {
+    if (!l.a || !l.b || l.b < l.a) return 0;
+    var pa = l.a.split('-').map(Number), pb = l.b.split('-').map(Number), e = new Date(pb[0], pb[1] - 1, pb[2] + 1);
+    var m = (e.getFullYear() - pa[0]) * 12 + (e.getMonth() + 1 - pa[1]);
+    if (e.getDate() < pa[2]) m--;
+    return Math.max(0, m);
+  }
+  function lvM(l) { return (l.m !== '' && l.m != null && !isNaN(+l.m)) ? Math.max(0, +l.m) : lvFull(l); }
+  function lvTotal() { return (S.leaves || []).reduce(function (a, l) { return a + lvM(l); }, 0); }
+  function rowsLv() {
+    S.leaves = S.leaves || [];
+    $('tb-lv').innerHTML = S.leaves.map(function (r, i) {
+      return '<tr><td>' + inp('leaves', i, 'n', 'text', r.n) + '</td><td>' + inp('leaves', i, 'a', 'date', r.a) + '</td><td>' + inp('leaves', i, 'b', 'date', r.b) + '</td><td class="calc num" id="lf-' + i + '"></td><td>' + inp('leaves', i, 'm', 'number', r.m == null ? '' : r.m, 'min="0" placeholder="تلقائي"') + '</td><td><button type="button" class="rm ghost" data-del="leaves" data-i="' + i + '" aria-label="حذف الإجازة">حذف</button></td></tr>';
+    }).join('');
+  }
+
+  /* ---------- المفاضلة بين تواريخ الاستحقاق ---------- */
+  function mfIncs() {
+    var o = [];
+    REF.leg.forEach(function (r) { var s = ymOf(r.s), p = +r.p; if (s != null && p > 0 && isMf(r)) o.push({ n: r.n || 'زيادة', s: s, p: p }); });
+    o.sort(function (a, b) { return a.s - b.s; });
+    return o;
+  }
+  function calcAt(dm) {
+    var keep = S, c = JSON.parse(JSON.stringify(S)), ds = ymStr(dm) + '-01', R;
+    c.entitle = ds; c.noOvr = !S.mfOvr;
+    c.leaves = (c.leaves || []).map(function (l) {
+      if (!l.a || !l.b) return l;
+      if (l.a >= ds) return { n: l.n, a: '', b: '', m: '' };
+      if (l.b >= ds) { var d0 = new Date(+ds.slice(0, 4), +ds.slice(5, 7) - 1, 0); return { n: l.n, a: l.a, b: d0.getFullYear() + '-' + String(d0.getMonth() + 1).padStart(2, '0') + '-' + String(d0.getDate()).padStart(2, '0'), m: '' }; }
+      return l;
+    });
+    c.ents = c.ents.map(function (r) {
+      var a = ymOf(r.a), b = ymOf(r.b);
+      if (a == null || b == null) return r;
+      if (a >= dm) return { n: r.n, a: '', b: '' };
+      if (b + (lastDay(r.b) ? 1 : 0) > dm) return { n: r.n, a: r.a, b: ds };
+      return r;
+    });
+    S = c; try { R = calc(); } finally { S = keep; }
+    return R;
+  }
+  function mfAttach(R) {
+    R.final = R.pension; R.mf = null;
+    if (R.err) return;
+    var incs = mfIncs(), on = S.mfOn !== false, seen = {}, cands = [];
+    if (on) incs.forEach(function (x) {
+      if (seen[x.s] || x.s >= R.E) return; seen[x.s] = 1;
+      var RR = calcAt(x.s);
+      if (RR.err || !(RR.tm > 0) || !(RR.actM > 0)) return;
+      cands.push({ kind: 'mf', dm: x.s, R: RR });
+    });
+    cands.push({ kind: 'act', dm: R.E, R: R });
+    cands.forEach(function (c) {
+      var p = c.R.pension, st = [];
+      incs.forEach(function (x) { if (x.s >= c.dm) { p = fl(p * (100 + x.p) / 100); st.push({ n: x.n, s: x.s, p: x.p, after: p }); } });
+      c.base = c.R.pension; c.steps = st; c.final = p;
+    });
+    var best = 0; cands.forEach(function (c, i) { if (c.final >= cands[best].final) best = i; });
+    R.mf = { on: on, cands: cands, best: best, multi: cands.length > 1, incs: incs };
+    R.final = cands[best].final;
+    if (R.compM) R.comp = R.compM * R.final;
+  }
+
+  /* ---------- عرض الصفوف ---------- */
+  function inp(list, i, f, type, val, extra) {
+    return '<input type="' + type + '" ' + (extra || '') + ' data-l="' + list + '" data-i="' + i + '" data-f="' + f + '" value="' + esc(val) + '" aria-label="' + f + ' ' + (i + 1) + '">';
+  }
+  function rowsEnt() {
+    $('tb-ent').innerHTML = S.ents.map(function (r, i) {
+      return '<tr><td>' + inp('ents', i, 'n', 'text', r.n) + '</td><td>' + inp('ents', i, 'a', 'date', r.a) + '</td><td>' + inp('ents', i, 'b', 'date', r.b) + '</td><td class="calc num" id="em-' + i + '"></td><td>' + inp('ents', i, 'w', 'number', r.w == null ? '' : r.w, 'min="0" placeholder="تلقائي من الأجور"') + '</td><td><button type="button" class="rm ghost" data-del="ents" data-i="' + i + '" aria-label="حذف الخدمة">حذف</button></td></tr>';
+    }).join('');
+  }
+  function rowsWag() {
+    $('tb-wag').innerHTML = S.wages.map(function (r, i) {
+      return '<tr><td class="calc">' + (i + 1) + '</td><td>' + inp('wages', i, 's', 'month', r.s) + '</td><td>' + inp('wages', i, 'w', 'number', r.w, 'min="0"') + '</td><td class="calc num" id="wp-' + i + '"></td><td class="calc num" id="wm-' + i + '"></td><td><button type="button" class="rm ghost" data-del="wages" data-i="' + i + '" aria-label="حذف الفترة ' + (i + 1) + '">حذف</button></td></tr>';
+    }).join('');
+  }
+  function rowsLeg() {
+    var imp = S.legImport !== false; $('leg-imp').checked = imp; $('leg-add').hidden = false; $('leg-add').textContent = imp ? '+ إضافة زيادة تشريعية (تُضاف إلى الجدول الثابت)' : '+ إضافة زيادة تشريعية';
+    $('tb-leg').innerHTML = legList().map(function (r, i) {
+      if (imp) return '<tr id="lr-' + i + '"><td>' + esc(r.n) + '</td><td class="num">' + esc(r.p) + '</td><td class="num">' + esc(String(r.s || '').replace('-', '/')) + '</td><td class="calc num" id="lb-' + i + '"></td><td class="res num" id="la-' + i + '"></td><td class="nt" id="ln-' + i + '"></td><td></td></tr>';
+      return '<tr id="lr-' + i + '"><td>' + inp('leg', i, 'n', 'text', r.n) + '</td><td>' + inp('leg', i, 'p', 'number', r.p, 'min="0"') + '</td><td>' + inp('leg', i, 's', 'month', r.s) + '</td><td class="calc num" id="lb-' + i + '"></td><td class="res num" id="la-' + i + '"></td><td class="nt" id="ln-' + i + '"></td><td><button type="button" class="rm ghost" data-del="leg" data-i="' + i + '" aria-label="حذف الزيادة">حذف</button></td></tr>';
+    }).join('');
+  }
+  function rowsPer() {
+    $('tb-per').innerHTML = S.per.map(function (r, i) {
+      var ex = r.t === 'exc';
+      var typ = '<select data-l="per" data-i="' + i + '" data-f="t" aria-label="نوع الزيادة ' + (i + 1) + '"><option value="pct"' + (ex ? '' : ' selected') + '>بنسبة %</option><option value="exc"' + (ex ? ' selected' : '') + '>استثنائية (مبلغ)</option></select>';
+      return '<tr><td>' + inp('per', i, 'n', 'text', r.n) + '</td><td>' + inp('per', i, 'd', 'date', r.d) + '</td><td>' + inp('per', i, 's', 'month', r.s) + '</td><td>' + typ + '</td>' +
+        (ex ? '<td class="calc num">—</td><td class="calc num">—</td><td>' + inp('per', i, 'amt', 'number', r.amt == null ? '' : r.amt, 'min="0" step="any" placeholder="اكتب المبلغ"') + '</td>'
+            : '<td>' + inp('per', i, 'p', 'number', r.p, 'min="0" step="0.1"') + '</td><td class="calc num" id="pb-' + i + '"></td><td class="res num" id="pa-' + i + '"></td>') +
+        '<td><button type="button" class="rm ghost" data-del="per" data-i="' + i + '" aria-label="حذف الزيادة">حذف</button></td></tr>';
+    }).join('');
+  }
+  function rowsLaw() {
+    S.laws = S.laws || [];
+    $('tb-law').innerHTML = S.laws.map(function (r, i) {
+      return '<tr><td>' + inp('laws', i, 'from', 'month', r.from) + '</td>' + ['p5', 'p2', 'rate', 'cap', 'maxY', 'wageCap', 'minPen'].map(function (k) { return '<td>' + inp('laws', i, k, 'number', r[k], 'min="0" step="any"') + '</td>'; }).join('') + '<td><button type="button" class="rm ghost" data-del="laws" data-i="' + i + '" aria-label="حذف المعيار">حذف</button></td></tr>';
+    }).join('');
+  }
+  function autoPerSync(R) {
+    if (!S.perAuto) return false;
+    var rate = (S.perRate === '' || S.perRate == null || isNaN(+S.perRate)) ? 9 : +S.perRate, targets = {}, tl = [];
+    var refM = ymOf(S.refDate), sepM = ymOf(S.ins && S.ins.sep), endM = R.E;
+    if (sepM != null) { if (lastDay(S.ins.sep)) sepM += 1; if (endM == null || sepM < endM) endM = sepM; }
+    if (!R.err && refM != null && endM != null) {
+      /* التاريخ المرجعي: أول دورية بعد سنتين كاملتين، ثم كل سنتين كاملتين حتى الانفكاك، وتُهمل الفترة الأخيرة الناقصة */
+      for (var k = 1; k < 60; k++) { var m = refM + 24 * k; if (m > endM - 1) break; if (m > R.W5) { var key = ymStr(m); targets[key] = m; tl.push(key); } }
+    } else if (!R.err && R.segs && R.segs.length) {
+      var anchor = R.segs[0].from; R.segs.forEach(function (g) { if (g.from <= R.W5) anchor = g.from; });
+      for (var k = 1; k < 60; k++) { var m = anchor + 24 * k; if (m > R.E - 1) break; if (m > R.W5) { var key = ymStr(m); targets[key] = m; tl.push(key); } }
+    }
+    var skip = S.perSkip = S.perSkip || [], before = JSON.stringify(S.per), keep = [], have = {};
+    S.per.forEach(function (r) { if (r.ak) { if (targets[r.ak] != null || r.ed) { keep.push(r); have[r.ak] = 1; } } else keep.push(r); });
+    tl.forEach(function (key) { if (have[key] || skip.indexOf(key) >= 0) return; keep.push({ n: 'دورية تلقائية ' + lab(targets[key]), d: key + '-01', s: key, p: rate, ak: key }); });
+    keep.forEach(function (r) { if (r.ak && !r.ed) { r.p = rate; r.s = r.ak; r.d = r.ak + '-01'; } });
+    if (keep.some(function (r) { return r.ak; })) keep = keep.filter(function (r) { return r.ak || r.n || r.s || r.d; });
+    srt(keep, 's'); S.per = keep;
+    return JSON.stringify(S.per) !== before;
+  }
+  function setCmpInputs() { var C = S.cmp || {}; $('c-kind').value = C.kind || 'leave'; $('c-par2').checked = !!C.par2; $('c-bonus').value = C.bonus || ''; }
+  function rowsRef() {
+    $('tb-ref').innerHTML = REF.leg.map(function (r, i) {
+      var f = function (k, type, extra) { return '<input type="' + type + '" ' + (extra || '') + ' data-r="' + k + '" data-i="' + i + '" value="' + esc(r[k] == null ? '' : r[k]) + '" aria-label="' + k + ' ' + (i + 1) + '">'; };
+      return '<tr><td>' + f('n', 'text') + '</td><td>' + f('issued', 'date') + '</td><td>' + f('s', 'month') + '</td><td>' + f('p', 'number', 'min="0" step="any"') + '</td><td>' + f('minw', 'number', 'min="0"') + '</td><td style="text-align:center"><input type="checkbox" data-r="mf" data-i="' + i + '" ' + (isMf(r) ? 'checked' : '') + ' aria-label="تاريخ مفاضلة ' + (i + 1) + '"></td><td><button type="button" class="rm ghost" data-delr="1" data-i="' + i + '" aria-label="حذف الصك">حذف</button></td></tr>';
+    }).join('');
+  }
+  function rowsAll() {
+    rowsLaw(); rowsRef(); setCmpInputs();
+    $('entitle').value = S.entitle; $('added').value = S.added; $('refdate').value = S.refDate || '';
+    ['name', 'no', 'gender', 'birth', 'last', 'sub', 'sep', 'pay'].forEach(function (k) { $('i-' + k).value = S.ins[k] || ''; });
+    ['p5', 'p2', 'rate', 'cap', 'maxY', 'wageCap', 'minPen'].forEach(function (k) { $(k).value = S.par[k]; });
+    ['c57', 'c58a', 'c58b1', 'c58b2', 'c58b3', 'cut', 'buy'].forEach(function (k) { $(k).value = S.par[k] == null ? DEFPAR[k] : S.par[k]; });
+    $('stateTbl').checked = S.stateTbl !== false; $('mf-on').checked = S.mfOn !== false; $('mf-ovr').checked = !!S.mfOvr;
+    $('h-on').checked = !!H.on; $('h-lines').value = H.lines || ''; var q0 = rp(); $('q-to').value = q0.to || ''; $('q-subj').value = q0.subj || ''; $('q-subjc').value = q0.subjC || ''; $('q-date').value = q0.date || ''; $('h-emp').value = H.emp || ''; $('h-div').value = H.div || ''; $('h-dept').value = H.dept || '';
+    $('per-auto').checked = !!S.perAuto; $('per-rate').value = (S.perRate === '' || S.perRate == null) ? 9 : S.perRate;
+    rowsEnt(); rowsWag(); rowsLv(); rowsLeg(); rowsPer();
+  }
+
+  /* ---------- تحديث العرض ---------- */
+  function setText(id, t) { var el = $(id); if (el) el.textContent = t; }
+  function refresh() {
+    var R = post(calc()); mfAttach(R); last = R;
+    if (S.perAuto && autoPerSync(R)) { R = post(calc()); mfAttach(R); last = R; rowsPer(); }
+    S.ents.forEach(function (_, i) { setText('em-' + i, R.entM[i] == null ? '' : R.entM[i]); });
+    setText('svc-total', R.tm ? R.tm : '');
+    (S.leaves || []).forEach(function (l, i) { setText('lf-' + i, lvFull(l) || ''); });
+    setText('lv-total', R.leaveM || 0);
+    setText('lv-note', R.leaveM ? 'مجموع الخدمة بعد إنقاص ' + R.leaveM + ' شهراً: ' + R.tm + ' شهراً (' + R.years + ' سنة و' + R.rem + ' شهر).' : '');
+    var sn = 'أدخل تواريخ الالتحاق والانفكاك لحساب مدة الخدمة.';
+    if (R.tm) {
+      sn = 'مجموع الخدمة: ' + R.years + ' سنة و' + R.rem + ' شهر. ' + (R.over32
+        ? 'الخدمة أكثر من ' + R.maxY + ' سنة: تُهمل كسور السنة فتُعتمد ' + R.yrsUsed + ' سنة' + (R.compM ? '، ويُستحق تعويض دفعة واحدة براتب ' + R.compM + ' شهر (' + R.extraY + ' سنة كاملة بعد ' + R.maxY + '، بحد أقصى 3).' : '، ولا سنوات كاملة زائدة عن ' + R.maxY + ' فلا تعويض.')
+        : 'الخدمة ' + R.maxY + ' سنة أو أقل: الكسر يُعدّ سنة كاملة، فتُعتمد ' + R.yrsUsed + ' سنة.');
+    }
+    $('svc-note').textContent = sn + (R.leaveM ? ' (بعد إنقاص ' + R.leaveM + ' شهراً إجازة بلا أجر)' : '');
+
+    setText('law-note', R.law ? 'مطبّق على هذا الملف: معايير السريان من ' + lab(ymOf(R.law.from)) + '.' : ((S.laws || []).length ? 'لا يوجد سطر ساري لتاريخ الاستحقاق، تُستخدم المعايير الأساسية.' : ''));
+    renderWarns(R);
+    setText('wag-need', 'عدد الأشهر المطلوب تغطيتها: ' + R.need + (R.need < 60 ? ' (مدة الاشتراك الفعلية أقل من خمس سنوات، فلا يشترط 60 اشتراكاً).' : ' (60 شهراً).'));
+    setText('wag-total', R.err ? '' : R.covered);
+    var st = $('wag-state');
+    if (R.err) st.innerHTML = '<span class="pill warn">حدّد تاريخ الاستحقاق أولاً</span>';
+    else if (!R.segs.length) st.innerHTML = '<span class="pill warn">أدخل شهر تطبيق الأجر والأجر</span>';
+    else if (R.firstStart > R.E - R.need) st.innerHTML = '<span class="pill warn">ناقص: يجب أن يبدأ التسلسل من <span class="num">' + lab(R.E - R.need) + '</span> أو قبله (المطلوب ' + R.need + ' شهراً، المغطى ' + R.covered + ')</span>';
+    else st.innerHTML = '<span class="pill good">سليم: يغطي ' + R.covered + ' شهراً (المطلوب ' + R.need + ')</span>';
+    S.wages.forEach(function (_, i) {
+      var sg = R.segByIdx && R.segByIdx[i];
+      setText('wp-' + i, (sg && sg.m > 0) ? lab(sg.from) + ' → ' + lab(sg.to - 1) : '');
+      setText('wm-' + i, sg ? sg.m : '');
+    });
+    legList().forEach(function (r, i) {
+      var okA = R.legAmt && R.legAmt[i] != null, st = ymOf(r.s), inWin = !R.err && st != null && st > R.W5 && st <= R.E - 1;
+      setText('lb-' + i, okA ? nf(R.legBefore[i]) : '');
+      setText('la-' + i, okA ? nf(R.legAmt[i]) : (R.legSkip && R.legSkip[i] ? '-' : ''));
+      setText('ln-' + i, (R.legNote && R.legNote[i]) || '');
+      var tr = $('lr-' + i); if (tr) tr.className = (R.legNote && R.legNote[i]) ? 'skip' : '';
+    });
+    S.per.forEach(function (_, i) {
+      if (_.t === 'exc') return;
+      setText('pb-' + i, R.perAmt && R.perAmt[i] != null ? nf(R.perBefore[i]) : '');
+      setText('pa-' + i, R.perAmt && R.perAmt[i] != null ? nf(R.perAmt[i]) : '');
+    });
+
+    var note = $('exnote');
+    if (exNote) {
+      var ok = R.final === exExpect;
+      note.textContent = 'بيانات ' + exNote + ' محمّلة للتجربة. المعاش المقرر في التعميم ' + nf(exExpect) + (ok ? ' وهو مطابق لناتج الحاسبة.' : ' (الناتج الحالي مختلف بعد تعديلك للبيانات).');
+    } else note.textContent = 'أدخل بياناتك في الصفحات الأربع، أو حمّل مثالاً من التعميم لتجربة الحاسبة.';
+
+    renderIns(R); renderSummary(R); renderResult(R); renderReport(R); renderOrg(R); renderCmp(R); renderMf(R);
+  }
+
+  function renderSummary0(R) {
+    var el = $('sum');
+    if (R.err) {
+      el.innerHTML = '<div class="tile main"><div class="k">المعاش الشهري بعد قاعدة التجاوز</div><div class="v">—</div></div><div class="tile" style="grid-column: span 3"><div class="k">الحالة</div><div class="v" style="font-size:1rem;font-weight:500">' + esc(R.err) + '</div></div>';
+      return;
+    }
+    var status = R.over > 0 ? '<span class="pill warn">يوجد تجاوز ' + nf(R.over) + ' ل.س</span>' : '<span class="pill good">لا يوجد تجاوز</span>';
+    el.innerHTML =
+      '<div class="tile main"><div class="k">' + (R.mf && R.mf.multi ? 'المعاش المقرر بعد المفاضلة' : 'المعاش الشهري بعد قاعدة التجاوز') + '</div><div class="v num">' + nf(R.final) + ' ل.س</div></div>' +
+      '<div class="tile"><div class="k">متوسط الأجر المعتمد</div><div class="v num">' + nf(R.avg) + '</div></div>' +
+      '<div class="tile"><div class="k">السقف في آخر شهر</div><div class="v num">' + nf(R.lastCeil) + '</div></div>' +
+      '<div class="tile"><div class="k">التجاوز</div><div class="v">' + status + '</div></div>';
+  }
+
+  function renderResult0(R) {
+    var el = $('res');
+    if (R.err) { el.innerHTML = '<div class="empty">' + esc(R.err) + '</div>'; return; }
+    var warn = (R.firstStart == null || R.firstStart > R.E - R.need) ? '<div class="status bad">تنبيه: تسلسل الأجور لا يغطي ' + R.need + ' شهراً قبل الاستحقاق (المغطى ' + R.covered + ')، فقد تكون النتيجة غير دقيقة.</div>' : '';
+    var status = R.over > 0
+      ? '<div class="status bad">يوجد تجاوز: الأجر الأخير ' + nf(R.lastAct) + ' يزيد على السقف ' + nf(R.lastCeil) + ' بمقدار ' + nf(R.over) + ' ل.س شهرياً.</div>'
+      : '<div class="status ok">لا يوجد تجاوز: الأجر الأخير ' + nf(R.lastAct) + ' ضمن السقف ' + nf(R.lastCeil) + '.</div>';
+
+    function cap(title, from, base, cbase, pct) {
+      var list = R.incIn(from, R.E - 1);
+      var li = '<li><span>الأجر في ' + lab(from) + '</span><b class="num">' + nf(base) + '</b></li>' +
+        '<li><span>× (100% + ' + pct + '%)</span><b class="num">' + nf(cbase) + '</b></li>' +
+        list.map(function (x) { return '<li><span>+ ' + esc(x.n) + ' (' + lab(x.s) + ')</span><b class="num">' + nf(x.amt) + '</b></li>'; }).join('');
+      var total = cbase + list.reduce(function (a, x) { return a + x.amt; }, 0);
+      return '<div><h2>' + title + '</h2><ul class="mini">' + li + '<li class="sum"><span>السقف في آخر شهر</span><b class="num">' + nf(total) + '</b></li></ul></div>';
+    }
+    var ceilNote = R.lastC5 <= R.lastC2 ? 'السقف المعتمد هو سقف الخمس سنوات (الأقل).' : 'السقف المعتمد هو سقف السنتين (الأقل).';
+
+    var trs = grpRows(R.rows, ['act', 'c5', 'c2', 'c', 'ap', 'ex']);
+    var sA = R.rows.reduce(function (a, r) { return a + r.act; }, 0), sP = R.rows.reduce(function (a, r) { return a + r.ap; }, 0), sX = R.rows.reduce(function (a, r) { return a + r.ex; }, 0);
+
+    el.innerHTML = warn + status +
+      '<div class="two" style="margin-top:16px">' +
+        cap('سقف الخمس سنوات (' + (+R.par.p5 || 0) + '%)', R.W5, R.base5, R.c5base, +R.par.p5 || 0) +
+        cap('سقف السنتين (' + (+R.par.p2 || 0) + '%)', R.W2, R.base2, R.c2base, +R.par.p2 || 0) +
+      '</div><p class="hint" style="margin-top:8px">' + ceilNote + ' السقف المعتمد لكل شهر هو الأقل من السقفين.</p>' +
+      '<h2 style="margin-top:20px">أجور آخر 12 شهراً بعد استبعاد التجاوز</h2>' +
+      '<div class="scroll"><table><thead><tr><th>الفترة</th><th>عدد الاشتراكات</th><th>الأجر الفعلي</th><th>سقف 5 سنوات</th><th>سقف سنتين</th><th>السقف المعتمد</th><th>الأجر المعتمد</th><th>التجاوز</th></tr></thead><tbody>' + trs +
+      '</tbody><tfoot><tr class="total"><td>المجموع</td><td class="num">' + R.rows.length + '</td><td class="num">' + nf(sA) + '</td><td></td><td></td><td></td><td class="num">' + nf(sP) + '</td><td class="num">' + nf(sX) + '</td></tr></tfoot></table></div>' +
+      grpNote + '<h2 style="margin-top:20px">المعاش</h2><div class="kv">' +
+        '<div>متوسط الأجر المعتمد (المجموع ÷ 12، دون كسر)</div><div class="num">' + nf(R.avg) + '</div>' +
+        '<div>سنوات الخدمة المعتمدة (' + (R.over32 ? 'كسور السنة مهملة' : 'الكسر سنة كاملة') + ')</div><div class="num">' + R.yrsUsed + '</div>' +
+        '<div>نسبة المعاش (' + R.rate + '% × ' + R.yrsUsed + ' بحد أقصى ' + R.cap + '%)</div><div class="num">' + R.rateUsed + '%</div>' +
+        '<div class="big">المعاش الشهري بعد قاعدة التجاوز</div><div class="num big">' + nf(R.pension) + '</div>' +
+        '<div>متوسط الأجر الفعلي دون سقف</div><div class="num">' + nf(R.avgAct) + '</div>' +
+        '<div>المعاش دون تطبيق السقف</div><div class="num">' + nf(R.pensionNoCap) + '</div>' +
+        '<div>أثر التجاوز على المعاش (نقص شهري)</div><div class="num">' + nf(R.loss) + '</div>' +
+        (R.minApplied ? '<div>رُفع المعاش إلى الحد الأدنى العام للأجور (' + R.minSrc + ')</div><div class="num">' + nf(R.pension) + '</div>' : '') +
+        (R.over32 ? '<div>سنوات كاملة بعد ' + R.maxY + ' (يُحتسب منها 3 كحد أقصى)</div><div class="num">' + R.extraY + '</div><div class="big">تعويض الدفعة الواحدة (راتب ' + R.compM + ' شهر)</div><div class="num big">' + nf(R.comp) + '</div>' : '') +
+      '</div>' + mfResultHtml(R);
+  }
+  function mfResultHtml(R) {
+    if (!R.mf || !R.mf.multi) return '';
+    var M = R.mf;
+    return '<h2 style="margin-top:20px">المفاضلة بين تواريخ الاستحقاق</h2><div class="scroll"><table><thead><tr><th>التاريخ</th><th>المعاش بتاريخه</th><th>بعد الزيادات اللاحقة</th><th>المقرر</th></tr></thead><tbody>' +
+      M.cands.map(function (c, i) { return '<tr class="' + (i === M.best ? 'total' : '') + '"><td class="num">' + (c.kind === 'act' ? 'الاستحقاق الفعلي ' + esc((S.entitle || '').replace(/-/g, '/')) : 'مفاضلة ' + mfDate(c.dm)) + '</td><td class="num">' + nf(c.base) + '</td><td class="num">' + nf(c.final) + '</td><td>' + (i === M.best ? '✓' : '') + '</td></tr>'; }).join('') +
+      '</tbody></table></div><p class="hint">التفصيل الكامل في تبويب «تقرير المفاضلة».</p>';
+  }
+
+  function renderReport0(R) {
+    var el = $('rep'), I = S.ins;
+    var dstr = function (x) { return x ? x.replace(/-/g, '/') : ''; };
+    var v = function (x) { return x ? esc(x) : '<span style="color:var(--paper-mute)">..............................</span>'; };
+    var html = hdrHtml('r') + '<h3>تقرير حساب التجاوز وفق المادة 56 (ب)</h3>' + metaHtml();
+    html += '<h4>بيانات المؤمن عليه</h4><div class="idgrid">' +
+      '<div><b>الاسم الثلاثي:</b><span>' + v(I.name) + '</span></div>' +
+      '<div><b>الرقم التأميني:</b><span class="num">' + v(I.no) + '</span></div>' +
+      '<div><b>تاريخ الاشتراك:</b><span class="num">' + v(dstr(I.sub)) + '</span></div>' +
+      '<div><b>تاريخ الانفكاك:</b><span class="num">' + v(dstr(I.sep)) + '</span></div>' +
+      '<div><b>تاريخ بدء الصرف:</b><span class="num">' + v(dstr(I.pay)) + '</span></div>' +
+      '<div><b>تاريخ الاستحقاق المعتمد:</b><span class="num">' + v(dstr(S.entitle)) + '</span></div></div>';
+    if (R.err) { el.innerHTML = html + '<div class="note">تعذر إعداد الحساب: ' + esc(R.err) + '</div>' + footHtml() + ''; return; }
+
+    var p5 = +R.par.p5 || 0, p2 = +R.par.p2 || 0;
+    html += '<h4>آلية حساب التجاوز</h4><ol class="steps">' +
+      '<li>شهر الاستحقاق <span class="num">' + lab(R.E) + '</span>. تبدأ نافذة الخمس سنوات من <span class="num">' + lab(R.W5) + '</span> ونافذة السنتين من <span class="num">' + lab(R.W2) + '</span>.</li>' +
+      '<li>سقف الخمس سنوات = أجر <span class="num">' + lab(R.W5) + '</span> (<span class="num">' + nf(R.base5) + '</span>) × <span class="num">' + (100 + p5) + '%</span> = <span class="num">' + nf(R.c5base) + '</span>، ثم تُضاف الزيادات التشريعية والدورية التي بدأ صرفها بعد بداية النافذة.</li>' +
+      '<li>سقف السنتين = أجر <span class="num">' + lab(R.W2) + '</span> (<span class="num">' + nf(R.base2) + '</span>) × <span class="num">' + (100 + p2) + '%</span> = <span class="num">' + nf(R.c2base) + '</span>، ثم تُضاف الزيادات التي بدأ صرفها بعد بداية نافذة السنتين.</li>' +
+      '<li>السقف المعتمد لكل شهر من آخر 12 شهراً هو الأقل من السقفين. الأجر المعتمد هو الأقل من الأجر الفعلي والسقف، وما زاد على السقف يُستبعد.</li>' +
+      '<li>متوسط الأجر = مجموع الأجور المعتمدة لآخر 12 شهراً ÷ 12 (دون كسر).</li></ol>';
+
+    html += '<h4>الزيادات التشريعية</h4>';
+    var legRows = legList().map(function (r, i) {
+      if (r.s == null || r.s === '' || r.p === '' || r.p == null) return '';
+      var nt = (R.legNote && R.legNote[i]) || '';
+      return '<tr class="' + (nt ? 'over' : '') + '"><td>' + esc(r.n || 'زيادة تشريعية') + '</td><td class="num">' + esc(r.p) + '%</td><td class="num">' + esc(String(r.s).replace('-', '/')) + '</td><td class="num">' + (R.legAmt[i] == null ? '-' : nf(R.legBefore[i])) + '</td><td class="num">' + (R.legAmt[i] == null ? '-' : '<b>' + nf(R.legAmt[i]) + '</b>') + '</td><td style="text-align:right">' + esc(nt) + '</td></tr>';
+    }).join('');
+    html += legRows ? '<div class="scroll"><table><thead><tr><th>البيان</th><th>النسبة</th><th>شهر بدء الصرف</th><th>الأجر قبل الزيادة</th><th>مبلغ الزيادة</th><th>ملاحظة</th></tr></thead><tbody>' + legRows + '</tbody></table></div>' : '<div>لا توجد زيادات تشريعية.</div>';
+
+    html += '<h4>الزيادات الدورية</h4>';
+    var perRows = S.per.map(function (r, i) {
+      if (R.perAmt[i] == null) return '';
+      if (r.t === 'exc') return '<tr><td>' + esc(r.n || 'زيادة استثنائية') + '</td><td class="num">' + esc(dstr(r.d)) + '</td><td class="num">' + esc(r.s.replace('-', '/')) + '</td><td class="num">استثنائية</td><td class="num">-</td><td class="num"><b>' + nf(R.perAmt[i]) + '</b></td></tr>';
+      return '<tr><td>' + esc(r.n || 'زيادة دورية') + '</td><td class="num">' + esc(dstr(r.d)) + '</td><td class="num">' + esc(r.s.replace('-', '/')) + '</td><td class="num">' + esc(r.p) + '%</td><td class="num">' + nf(R.perBefore[i]) + '</td><td class="num"><b>' + nf(R.perAmt[i]) + '</b></td></tr>';
+    }).join('');
+    html += perRows ? '<div class="scroll"><table><thead><tr><th>البيان</th><th>تاريخ الاستحقاق</th><th>شهر بدء الصرف</th><th>النسبة</th><th>الأجر قبل الزيادة</th><th>مبلغ الزيادة</th></tr></thead><tbody>' + perRows + '</tbody></table></div>' : '<div>لا توجد زيادات دورية.</div>';
+
+    var lastRow = R.rows[R.rows.length - 1];
+    html += '<h4>مقارنة الأجر الأخير بالسقف (شهر ' + lab(lastRow.t) + ')</h4><div class="scroll"><table><thead><tr><th>سقف 5 سنوات</th><th>سقف سنتين</th><th>السقف المعتمد (الأقل)</th><th>الأجر الفعلي</th><th>الفرق</th></tr></thead><tbody><tr>' +
+      '<td class="num">' + nf(R.lastC5) + '</td><td class="num">' + nf(R.lastC2) + '</td><td class="num"><b>' + nf(R.lastCeil) + '</b></td><td class="num">' + nf(R.lastAct) + '</td><td class="num">' + (R.over > 0 ? nf(R.over) : '-') + '</td></tr></tbody></table></div>';
+
+    if (!R.anyOver) {
+      html += '<div class="note">ملاحظة: لا يوجد تجاوز. أجور آخر 12 شهراً ضمن السقف المعتمد، وتُعتمد كما هي دون استبعاد أي جزء منها.</div>';
+    } else {
+      var trs = grpRows(R.rows, ['act', 'c', 'ap', 'ex']);
+      var sA = R.rows.reduce(function (a, r) { return a + r.act; }, 0), sP = R.rows.reduce(function (a, r) { return a + r.ap; }, 0), sX = R.rows.reduce(function (a, r) { return a + r.ex; }, 0);
+      html += '<h4>الاشتراكات بعد تطبيق قاعدة التجاوز</h4><div class="note">يوجد تجاوز، وقد استُبعد ما زاد على السقف من أجور الأشهر المظللة.</div>' +
+        '<div class="scroll"><table><thead><tr><th>الفترة</th><th>عدد الاشتراكات</th><th>الأجر الفعلي</th><th>السقف المعتمد</th><th>الأجر المعتمد (الاشتراك)</th><th>التجاوز المستبعد</th></tr></thead><tbody>' + trs +
+        '</tbody><tfoot><tr class="total"><td>المجموع</td><td class="num">' + R.rows.length + '</td><td class="num">' + nf(sA) + '</td><td></td><td class="num">' + nf(sP) + '</td><td class="num">' + nf(sX) + '</td></tr></tfoot></table></div>' +
+        grpNote + '<div class="idgrid">' +
+        '<div><b>متوسط الأجر المعتمد:</b><span class="num">' + nf(R.avg) + '</span></div>' +
+        '<div><b>سنوات الخدمة المعتمدة:</b><span class="num">' + R.yrsUsed + '</span></div>' +
+        '<div><b>نسبة المعاش:</b><span class="num">' + R.rateUsed + '%</span></div>' +
+        '<div><b>المعاش الشهري بعد قاعدة التجاوز:</b><span class="num">' + nf(R.pension) + '</span></div>' + (R.compM ? '<div><b>تعويض الدفعة الواحدة (' + R.compM + ' شهر):</b><span class="num">' + nf(R.comp) + '</span></div>' : '') + '</div>';
+    }
+    html += '' + footHtml() + '';
+    el.innerHTML = html;
+  }
+
+  function legNotesHtml(R) {
+    var out = [];
+    legList().forEach(function (r, i) { if (R.legNote && R.legNote[i] && r.s && r.p !== '' && r.p != null) out.push('<div class="note">ملاحظة: ' + esc(r.n || 'زيادة تشريعية') + ' (<span class="num">' + esc(String(r.s).replace('-', '/')) + '</span>): ' + esc(R.legNote[i]) + '</div>'); });
+    return out.join('');
+  }
+  function renderOrg0(R) {
+    var el = $('org'), I = S.ins;
+    var dstr = function (x) { return x ? x.replace(/-/g, '/') : ''; };
+    var v = function (x) { return x ? esc(x) : '<span style="color:var(--paper-mute)">..............................</span>'; };
+    var html = hdrHtml('r') + '<h3>تقرير حساب التجاوز وفق المادة 56 (ب)</h3>' + metaHtml() +
+      '<div class="idgrid">' +
+      '<div><b>اسم المؤمن عليه:</b><span>' + v(I.name) + '</span></div>' +
+      '<div><b>الرقم التأميني:</b><span class="num">' + v(I.no) + '</span></div>' +
+      '<div><b>تاريخ الاشتراك:</b><span class="num">' + v(dstr(I.sub)) + '</span></div>' +
+      '<div><b>تاريخ الانفكاك:</b><span class="num">' + v(dstr(I.sep)) + '</span></div></div>';
+    if (R.err) {
+      html += '<div class="note">تعذر إعداد الحساب: ' + esc(R.err) + '</div>';
+    } else {
+      var q5 = +R.par.p5 || 0, q2 = +R.par.p2 || 0;
+      var ic = R.incs.filter(function (x) { return x.s > R.W5 && x.s <= R.E - 1; }).sort(function (x, y) { return x.s - y.s; });
+      var mx = R.over > 0 ? R.over : Math.max.apply(null, R.rows.map(function (r) { return r.ex; }));
+      html += '<h4>آلية حساب السقف</h4><div class="scroll"><table><thead><tr><th>البند</th><th>سقف 5 سنوات</th><th>سقف سنتين</th></tr></thead><tbody>' +
+        '<tr><td>أجر بداية الحساب (شهر <span class="num">' + lab(R.W5) + '</span> / <span class="num">' + lab(R.W2) + '</span>)</td><td class="num">' + nf(R.base5) + '</td><td class="num">' + nf(R.base2) + '</td></tr>' +
+        '<tr><td>× <span class="num">' + (100 + q5) + '%</span> / <span class="num">' + (100 + q2) + '%</span></td><td class="num">' + nf(R.c5base) + '</td><td class="num">' + nf(R.c2base) + '</td></tr>' +
+        ic.map(function (x) { return '<tr><td>+ ' + incLbl(x) + esc(x.n) + ' (<span class="num">' + lab(x.s) + '</span>)</td><td class="num">' + nf(x.amt) + '</td><td class="num">' + (x.s > R.W2 ? nf(x.amt) : '-') + '</td></tr>'; }).join('') +
+        '</tbody><tfoot><tr class="total"><td>السقف في آخر شهر (<span class="num">' + lab(R.E - 1) + '</span>)</td><td class="num">' + nf(R.lastC5) + '</td><td class="num">' + nf(R.lastC2) + '</td></tr>' +
+        '<tr class="total"><td>السقف المعتمد (الأقل من السقفين)</td><td colspan="2" class="num">' + nf(R.lastCeil) + '</td></tr>' +
+        '<tr class="total"><td>الأجر الفعلي في آخر شهر</td><td colspan="2" class="num">' + nf(R.lastAct) + '</td></tr></tfoot></table></div>' + legNotesHtml(R) +
+        '<div class="note">ملاحظة: ' + (R.anyOver ? 'يوجد تجاوز على الأجور الفعلية بزيادة <span class="num">' + nf(mx) + '</span> وتطبق أحكام المادة 56 / ب.' : 'لا يوجد تجاوز وتطبق الأجور الفعلية.') + '</div>';
+    }
+    html += '' + sigHtml('r') + footHtml();;
+    el.innerHTML = html;
+  }
+
+
+  function mfDate(dm) { return Math.floor(dm / 12) + '/' + String(dm % 12 + 1).padStart(2, '0') + '/01'; }
+  function mfBlock(c, n) {
+    var RR = c.R, g = [], tot = 0, dstr = function (x) { return x ? x.replace(/-/g, '/') : ''; };
+    RR.rows.forEach(function (r) { var y = Math.floor(r.t / 12), l = g[g.length - 1]; if (l && l.y === y && l.w === r.ap) l.n++; else g.push({ y: y, w: r.ap, n: 1 }); tot += r.ap; });
+    var head = c.kind === 'act' ? n + '- حساب المعاش بتاريخ الاستحقاق الفعلي ' + dstr(S.entitle) : n + '- مفاضلة ' + mfDate(c.dm);
+    var h = '<h4>' + head + '</h4>';
+    if (S.mfOvr && RR.firstStart != null && RR.firstStart > c.dm - 60 && c.kind !== 'act') h += '<p class="hint" style="margin:0">ملاحظة: الأجور المدخلة تبدأ من ' + lab(RR.firstStart) + '، فاعتُمد أول أجر مُدخل أساساً لنافذة الخمس سنوات في هذه المفاضلة.</p>';
+    h += '<div class="scroll"><table><thead><tr><th>العام</th><th>عدد الأشهر</th><th>الأجر المعتمد</th><th>المجموع</th></tr></thead><tbody>' +
+      g.map(function (x) { return '<tr><td class="num">' + x.y + '</td><td class="num">' + x.n + '</td><td class="num">' + nf(x.w) + '</td><td class="num">' + nf(x.w * x.n) + '</td></tr>'; }).join('') +
+      '</tbody><tfoot><tr class="total"><td>المجموع</td><td class="num">' + RR.rows.length + '</td><td></td><td class="num">' + nf(tot) + '</td></tr></tfoot></table></div>';
+    var rows = '<tr><td>المتوسط = ' + nf(tot) + ' ÷ 12</td><td class="num">' + nf(RR.avg) + '</td></tr>' +
+      '<tr><td>مدة الخدمة حتى هذا التاريخ <span class="num">' + RR.tm + '</span> شهراً (' + RR.years + ' سنة و' + RR.rem + ' شهر) فتُعتمد <span class="num">' + RR.yrsUsed + '</span> سنة</td><td class="num">' + RR.rateUsed + '%</td></tr>' +
+      '<tr class="total"><td>المعاش = ' + nf(RR.avg) + ' × ' + RR.rateUsed + '%' + (RR.minApplied ? ' (رُفع إلى الحد الأدنى للأجور)' : '') + '</td><td class="num">' + nf(c.base) + '</td></tr>' +
+      c.steps.map(function (x) { return '<tr><td>المعاش بعد إضافة ' + esc(x.n) + ' (' + mfDate(x.s) + ') بنسبة ' + x.p + '%</td><td class="num"><b>' + nf(x.after) + '</b></td></tr>'; }).join('');
+    h += '<div class="scroll"><table><tbody>' + rows + '</tbody></table></div>';
+    if (RR.anyOver) h += '<p class="hint" style="margin:0">يوجد تجاوز في أجور هذه الفترة، وقد استُبعد ما زاد على السقف (أقصاه ' + nf(Math.max.apply(null, RR.rows.map(function (r) { return r.ex; }))) + ' شهرياً) قبل حساب المتوسط.</p>';
+    return h;
+  }
+  function renderMf0(R) {
+    var el = $('mf'), I = S.ins;
+    var dstr = function (x) { return x ? x.replace(/-/g, '/') : ''; };
+    var v = function (x) { return x ? esc(x) : '<span style="color:var(--paper-mute)">..............................</span>'; };
+    var html = hdrHtml('m') + '<h3>تقرير المفاضلة وتصفية المستحقات التأمينية</h3>' + metaHtml() + '<div class="idgrid">' +
+      '<div><b>الاسم الثلاثي:</b><span>' + v(I.name) + '</span></div>' +
+      '<div><b>الرقم التأميني:</b><span class="num">' + v(I.no) + '</span></div>' +
+      '<div><b>تاريخ الاشتراك:</b><span class="num">' + v(dstr(I.sub)) + '</span></div>' +
+      '<div><b>تاريخ الانفكاك:</b><span class="num">' + v(dstr(I.sep)) + '</span></div>' +
+      '<div><b>تاريخ الاستحقاق الفعلي:</b><span class="num">' + v(dstr(S.entitle)) + '</span></div></div>';
+    if (R.err) { el.innerHTML = html + '<div class="note">تعذر إعداد الحساب: ' + esc(R.err) + '</div>' + footHtml(); return; }
+    var M = R.mf;
+    /* الخدمات */
+    var filled = S.ents.filter(function (r) { return r.a && r.b; }).length;
+    var sv = S.ents.map(function (r, i) { if (!r.a || !r.b) return ''; return '<tr><td>' + esc(r.n || 'خدمة') + '</td><td class="num">' + dstr(r.a) + '</td><td class="num">' + dstr(r.b) + '</td><td class="num">' + (R.entM[i] == null ? '' : R.entM[i]) + '</td></tr>'; }).join('') +
+      ((+S.added) ? '<tr><td>الخدمات المضمومة</td><td></td><td></td><td class="num">' + (+S.added) + '</td></tr>' : '') + (R.leaveM ? '<tr><td>ينقص: إجازات بلا أجر</td><td></td><td></td><td class="num">-' + R.leaveM + '</td></tr>' : '');
+    html += '<h4>الخدمات</h4><div class="scroll"><table><thead><tr><th>الجهة</th><th>تاريخ الالتحاق</th><th>تاريخ الانفكاك</th><th>المدة بالأشهر</th></tr></thead><tbody>' + sv +
+      '</tbody><tfoot><tr class="total"><td colspan="3">مجموع الخدمات (' + R.years + ' سنة و' + R.rem + ' شهر)</td><td class="num">' + R.tm + '</td></tr></tfoot></table></div>' +
+      (filled > 1 ? '<p class="hint" style="margin:0">تُحتسب الخدمة متصلة بين المؤسسة والشركة عند حساب المعاش.</p>' : '');
+    /* الأجور */
+    html += '<h4>تسلسل الأجور</h4><div class="scroll"><table><thead><tr><th>الفترة</th><th>عدد الأشهر</th><th>الأجر</th></tr></thead><tbody>' +
+      R.segs.filter(function (g) { return g.m > 0; }).map(function (g) { return '<tr><td class="num">' + lab(g.from) + ' → ' + lab(g.to - 1) + '</td><td class="num">' + g.m + '</td><td class="num">' + nf(g.w) + '</td></tr>'; }).join('') +
+      '</tbody><tfoot><tr class="total"><td>المجموع</td><td class="num">' + R.covered + '</td><td></td></tr></tfoot></table></div>';
+    /* التجاوز بتاريخ الاستحقاق الفعلي */
+    var p5 = +R.par.p5 || 0, p2 = +R.par.p2 || 0;
+    var side = function (from, base, pct, cbase, tot, other) {
+      var L = [['أجر ' + lab(from) + ': ' + nf(base) + ' × ' + (100 + pct) + '%', nf(cbase)]];
+      R.incIn(from, R.E - 1).forEach(function (x) { L.push(['+ ' + (x.exc ? 'زيادة استثنائية ' : (/^زيادة/.test(x.n) ? '' : 'زيادة ')) + esc(x.n) + ' (' + lab(x.s) + ')', nf(x.amt)]); });
+      L.push(['المجموع (السقف في آخر شهر)', nf(tot)]);
+      L.push([(R.lastAct > tot ? 'يوجد تجاوز' : 'لا يوجد تجاوز') + (tot <= other ? ' وهو الأقل' : ''), '']);
+      return L;
+    };
+    var A = side(R.W5, R.base5, p5, R.c5base, R.lastC5, R.lastC2), B = side(R.W2, R.base2, p2, R.c2base, R.lastC2, R.lastC5), nr = Math.max(A.length, B.length), tr = '';
+    for (var i = 0; i < nr; i++) {
+      var a = A[i] || ['', ''], b = B[i] || ['', ''], tl = (i === A.length - 2 ? ' class="total"' : '');
+      tr += '<tr' + tl + '><td style="text-align:right">' + a[0] + '</td><td class="num">' + a[1] + '</td><td style="text-align:right">' + b[0] + '</td><td class="num">' + b[1] + '</td></tr>';
+    }
+    html += '<h4>حساب التجاوز وفق المادة 56 (بتاريخ الاستحقاق الفعلي)</h4><div class="scroll"><table><thead><tr><th colspan="2">تجاوز ' + p5 + '% لخمس سنوات</th><th colspan="2">تجاوز ' + p2 + '% لسنتين</th></tr></thead><tbody>' + tr + '</tbody></table></div>' +
+      '<p class="hint" style="margin:0">الأجر الفعلي في آخر شهر ' + nf(R.lastAct) + '، والسقف المعتمد (الأقل) ' + nf(R.lastCeil) + (R.over > 0 ? '، فالتجاوز ' + nf(R.over) + ' شهرياً.' : '، فلا تجاوز.') + '</p>' + legNotesHtml(R);
+    /* المعاش عند كل تاريخ */
+    html += '<h4>حساب المعاش</h4>';
+    if (!M.multi) html += '<div class="note">ملاحظة: ' + (M.on ? 'لا توجد تواريخ مفاضلة سابقة لتاريخ الاستحقاق الفعلي في الجدول الثابت، فيُعتمد المعاش بتاريخ الاستحقاق الفعلي' : 'المفاضلة معطّلة لهذا الملف، فيُعتمد المعاش بتاريخ الاستحقاق الفعلي') + (M.cands[0].steps.length ? ' بعد إضافة الزيادات اللاحقة.' : '.') + '</div>';
+    M.cands.forEach(function (c, i) { html += mfBlock(c, i + 1); });
+    /* المقارنة */
+    html += '<h4>المقارنة والمعاش المقرر</h4><div class="scroll"><table><thead><tr><th>المفاضلة</th><th>مدة الخدمة (شهر)</th><th>المعاش بتاريخه</th><th>المعاش بعد الزيادات</th><th>القرار</th></tr></thead><tbody>' +
+      M.cands.map(function (c, i) { return '<tr class="' + (i === M.best ? 'total' : '') + '"><td class="num">' + (c.kind === 'act' ? 'الاستحقاق الفعلي ' + dstr(S.entitle) : mfDate(c.dm)) + '</td><td class="num">' + c.R.tm + '</td><td class="num">' + nf(c.base) + '</td><td class="num">' + nf(c.final) + '</td><td>' + (i === M.best ? 'الأعلى (المقرر)' : '') + '</td></tr>'; }).join('') + '</tbody></table></div>' +
+      '<div class="note">المعاش المقرر صرفه (' + nf(R.final) + ')' + (R.compM ? '<br>ويُصرف تعويض من دفعة واحدة عن ' + R.compM + ' ' + (R.compM === 1 ? 'سنة' : 'سنوات') + ': ' + R.compM + ' × ' + nf(R.final) + ' = ' + nf(R.comp) : '') + '</div>';
+    html += '<h4>آلية المفاضلة المعتمدة</h4><ol class="steps">' +
+      '<li>تُحدَّد تواريخ المفاضلة من الزيادات المؤشَّر عليها «تاريخ مفاضلة» في جدول الزيادات التشريعية الثابتة والتي تسبق شهر الاستحقاق الفعلي.</li>' +
+      '<li>لكل تاريخ يُحسب المعاش كأن الاستحقاق في أول ذلك الشهر: الخدمة حتى التاريخ، ومتوسط أجور آخر 12 شهراً قبله. وكما في أمثلة التعميم تُطبَّق قاعدة التجاوز (المادة 56/ب) بتاريخ الاستحقاق الفعلي فقط، وتُعتمد الأجور الفعلية في المفاضلات السابقة ما لم يُفعَّل خيار تطبيقها عليها.</li>' +
+      '<li>يُضاف إلى المعاش الزيادات المؤشَّرة التي يبدأ شهرها في تاريخ المفاضلة أو بعده، كلٌّ على المعاش بعد الزيادة التي قبلها (100% ثم 50% مثلاً).</li>' +
+      '<li>يُقرَّر المعاش الأعلى بين المفاضلات وتاريخ الاستحقاق الفعلي.</li></ol>';
+    el.innerHTML = html + sigHtml('r') + footHtml();
+  }
+
+  function renderWarns(R) {
+    var w = [], ev = [];
+    S.ents.forEach(function (r, i) {
+      if (r.a && r.b) { if (r.b < r.a) w.push('الخدمة ' + (i + 1) + ': تاريخ الانفكاك قبل الالتحاق.'); else ev.push({ i: i + 1, a: r.a, b: r.b }); }
+      else if (r.a || r.b) w.push('الخدمة ' + (i + 1) + ': تاريخ ناقص.');
+    });
+    ev.sort(function (x, y) { return x.a < y.a ? -1 : 1; });
+    for (var k = 1; k < ev.length; k++) if (ev[k].a <= ev[k - 1].b) w.push('تداخل بين الخدمة ' + ev[k - 1].i + ' والخدمة ' + ev[k].i + ': يُحتسب التداخل مرة واحدة، وإذا كانتا متوازيتين فتُصفّى كل خدمة على حدة (م56/د).');
+    var seen = {};
+    S.wages.forEach(function (r, i) {
+      if (!r.s && !r.w) return;
+      if (!r.s) w.push('الأجر ' + (i + 1) + ': لا يوجد شهر تطبيق فلن يُحتسب.');
+      else if (!(+r.w > 0)) w.push('الأجر ' + (i + 1) + ': قيمة الأجر غير مدخلة.');
+      if (r.s && seen[r.s]) w.push('الأجران ' + seen[r.s] + ' و' + (i + 1) + ' لهما شهر التطبيق نفسه.'); else if (r.s) seen[r.s] = i + 1;
+      if (R.E != null && ymOf(r.s) != null && ymOf(r.s) >= R.E) w.push('الأجر ' + (i + 1) + ': يبدأ في شهر الاستحقاق أو بعده فلا يدخل في الحساب.');
+    });
+    (S.legImport === false ? S.leg : []).concat(S.per).forEach(function (r) { if (r.t === 'exc') { if ((+r.amt > 0 && !r.s) || (r.s && !(+r.amt > 0))) w.push('زيادة استثنائية «' + (r.n || 'بلا اسم') + '»: بيانات ناقصة (المبلغ أو الشهر).'); return; } if ((r.p && !r.s) || (r.s && !(+r.p > 0))) w.push('زيادة «' + (r.n || 'بلا اسم') + '»: بيانات ناقصة (النسبة أو الشهر).'); });
+    $('warns').innerHTML = w.length ? '<div class="status bad"><b>تنبيهات التحقق:</b><br>' + w.map(esc).join('<br>') + '</div>' : '';
+  }
+  function calcBase2() { var k = S.per.pop(); var b = calc().lastC2; S.per.push(k); return b; }
+  function runTests() {
+    var keep = [S, exNote, exExpect], keepRef = REF, out = [], bad = 0;
+    var chk = function (name, got, exp) { var ok = got === exp; if (!ok) bad++; out.push('<div>' + (ok ? '✓' : '✗') + ' ' + esc(name) + ' — المتوقع <span class="num">' + exp + '</span> الناتج <span class="num">' + got + '</span></div>'); };
+    var withAdded = function (m) { load(EX2); S.ents = [{ n: '', a: '', b: '' }]; S.added = m; return calc(); };
+    try {
+      load(EX1); chk('مثال 1 من التعميم: المعاش', calc().pension, 318273);
+      load(EX2); var r2 = calc(); chk('مثال 2 من التعميم: المعاش', r2.pension, 427757);
+      chk('مثال 2: سنوات الخدمة المعتمدة (الكسور مهملة)', r2.yrsUsed, 37); chk('مثال 2: أشهر التعويض', r2.compM, 3);
+      load(EX1); S.ents = [{ n: '', a: '2022-01-10', b: '2025-04-03' }, { n: '', a: '', b: '' }]; S.added = 0; var r3 = calc();
+      chk('خدمة 39 شهراً: الاشتراكات المطلوبة', r3.need, 39); chk('خدمة 3 سنوات و3 أشهر: تُعدّ 4 سنوات', r3.yrsUsed, 4);
+      var r4 = withAdded(384); chk('32 سنة تماماً: السنوات المعتمدة', r4.yrsUsed, 32); chk('32 سنة تماماً: لا تعويض', r4.compM, 0);
+      var r5 = withAdded(385); chk('32 سنة وشهر: تُهمل الكسور', r5.yrsUsed, 32); chk('32 سنة وشهر: لا تعويض', r5.compM, 0);
+      chk('33 سنة كاملة: شهر تعويض', withAdded(396).compM, 1);
+      chk('36 سنة وثلاثة أشهر: يُحدّ التعويض بثلاثة أشهر', withAdded(435).compM, 3);
+      chk('31 سنة وستة أشهر: تُعدّ 32 سنة', withAdded(378).yrsUsed, 32);
+      var svc = function (arr) { load(EX1); S.ents = arr.map(function (p) { return { n: '', a: p[0], b: p[1] }; }); S.added = 0; return calc(); };
+      var q1 = svc([['1980-03-01', '1983-04-01'], ['1987-10-01', '1998-11-01'], ['2002-02-01', '2015-04-01']]);
+      chk('مثال القانون م56/ج-1: عدد الاشتراكات', q1.tm, 328); chk('مثال القانون م56/ج-1: سنوات المعاش', q1.yrsUsed, 28);
+      var q2 = svc([['1990-02-01', '2005-03-01'], ['2004-02-01', '2015-12-31']]);
+      chk('مثال القانون م56/ج-2: خدمتان متداخلتان (التداخل مرة واحدة)', q2.tm, 311); chk('مثال القانون م56/ج-2: سنوات المعاش', q2.yrsUsed, 26);
+      chk('مثال القانون: 361 اشتراكاً = 31 سنة', svc([['2000-01-01', '2030-02-01']]).yrsUsed, 31);
+      chk('مثال القانون م56/د: 1986/1/1 إلى 2013/12/31 = 336 (آخر يوم يُحسب)', svc([['1986-01-01', '2013-12-31']]).tm, 336);
+      chk('مثال القانون م56/د: 1982/6/1 إلى 2015/6/1 = 396', svc([['1982-06-01', '2015-06-01']]).tm, 396);
+      chk('مثال القانون م56/د: 396 اشتراكاً تعويض شهر واحد', svc([['1982-06-01', '2015-06-01']]).compM, 1);
+      chk('مثال القانون م56/د: 27000×336×12%', fl(27000 * 336 * cmpRate(336, 'age60', true) / 100), 1088640);
+      chk('مثال القانون م56/د: حصة صندوق البطالة 3%', fl(27000 * 336 * 3 / 100), 272160);
+      chk('مثال القانون: 37 اشتراكاً = 11%', cmpRate(37, 'leave', false), 11); chk('مثال القانون: 125 اشتراكاً = 15%', cmpRate(125, 'leave', false), 15); chk('مثال القانون: 119 اشتراكاً = 13%', cmpRate(119, 'leave', false), 13);
+      REF = { leg: JSON.parse(JSON.stringify(REF_DEF)) };
+      load(EX1); S.legImport = true; chk('الزيادات من الجدول الثابت: مثال 1', calc().pension, 318273);
+      load(EX2); S.legImport = true; chk('الزيادات من الجدول الثابت: مثال 2', calc().pension, 427757);
+      load(EX1); var q0 = calc(); mfAttach(q0); chk('مفاضلة مثال 1: عدد التواريخ', q0.mf.cands.length, 3); chk('مفاضلة مثال 1: 2023/9 بعد الزيادتين', q0.mf.cands[0].final, 269148); chk('مفاضلة مثال 1: المعاش المقرر', q0.final, 318273);
+      load(EX2); var q9 = calc(); mfAttach(q9); chk('مفاضلة مثال 2: 2024/3 بعد الزيادة', q9.mf.cands[1].final, 310506); chk('مفاضلة مثال 2: المعاش المقرر', q9.final, 427757);
+      load(EX1); var b0 = calc().tm; S.leaves = [{ n: '', a: '2023-01-01', b: '2023-03-31', m: '' }]; chk('إجازة بلا أجر: 3 أشهر كاملة تُنقص من الخدمة', b0 - calc().tm, 3);
+      S.leaves[0].b = '2023-02-14'; S.leaves[0].a = '2023-01-15'; chk('إجازة بلا أجر: شهر كامل (15/1 إلى 14/2)', lvFull(S.leaves[0]), 1);
+      S.leaves = [{ n: '', a: '2023-01-01', b: '2023-03-31', m: 2 }]; chk('إجازة بلا أجر: تعديل الأشهر المنقصة يدوياً', b0 - calc().tm, 2);
+      S.leaves = [{ n: '', a: '2024-05-01', b: '2024-06-30', m: '' }]; var qa = calcAt(ymOf('2024-03-01')); chk('إجازة لاحقة لتاريخ المفاضلة لا تُنقص منه', qa.leaveM, 0);
+      load(EX2); S.mfOvr = true; var q7 = calc(); mfAttach(q7); chk('تفعيل التجاوز على المفاضلات: المعاش المقرر لا يتغير', q7.final, 427757);
+      load(EX2); S.mfOn = false; var q8 = calc(); mfAttach(q8); chk('تعطيل المفاضلة: تاريخ واحد فقط', q8.mf.cands.length, 1);
+      load(EX1); var e0 = calc().lastC5; S.per.push({ n: 'x', d: '', s: '2024-10', p: '', t: 'exc', amt: 10000 }); var e1 = calc(); chk('الزيادة الاستثنائية تُضاف كاملة إلى سقف الخمس سنوات', e1.lastC5 - e0, 10000); chk('الزيادة الاستثنائية تُضاف كاملة إلى سقف السنتين', e1.lastC2 - calcBase2(), 10000);
+      load(EX1); REF = { leg: [{ n: '', s: '2020-01', p: '', minw: 999999999 }] }; var rmn = calc(); chk('الحد الأدنى للأجور من الجدول الثابت يرفع المعاش', rmn.pension, 999999999);
+      S.par.minPen = 1; chk('الحد الأدنى اليدوي يتقدّم على الجدول', calc().pension, 318273);
+      load(EX1); var rc = calc(); chk('التعويض: قاعدة التجاوز مطبّقة على متوسط السنتين', rc.anyOver24 && rc.avg24 < rc.avgAct24, true);
+      var cm = function (m, kind, par2) { load(EX1); S.ents = [{ n: '', a: '', b: '' }]; S.added = m; S.cmp = { kind: kind, par2: par2, bonus: '' }; var q = calc(); return cmpCalc(q, S.cmp); };
+      chk('تعويض: 59 اشتراكاً = 11%', cm(59, 'leave', false).rate, 11); chk('تعويض: 60 اشتراكاً = 13%', cm(60, 'leave', false).rate, 13);
+      chk('تعويض: 119 اشتراكاً = 13%', cm(119, 'leave', false).rate, 13); chk('تعويض: 120 اشتراكاً = 15%', cm(120, 'leave', false).rate, 15);
+      chk('تعويض: 239 اشتراكاً ينطبق', cm(239, 'leave', false).ok, true); chk('تعويض: 240 اشتراكاً لا ينطبق (م58/ب)', cm(240, 'leave', false).ok, false);
+      chk('تعويض: سن الستين = 15%', cm(100, 'age60', false).rate, 15); chk('تعويض: خدمة متوازية تنقص 3%', cm(100, 'age60', true).rate, 12);
+      load(EX1); S.ents = [{ n: '', a: '2024-07-01', b: '2025-04-03' }]; S.added = 0; chk('تعويض: خدمة 9 أشهر تُحسب على 9 أشهر فقط', calc().n24, 9);
+      load(EX1); S.perAuto = true; S.per = []; autoPerSync(calc()); chk('دوري آلي: عدد الزيادات كل سنتين', S.per.length, 2); chk('دوري آلي: أول زيادة', S.per[0] && S.per[0].s, '2022-04');
+      load(EX1); S.laws = [{ from: '2025-01', p5: 40, p2: '', rate: '', cap: '', maxY: '' }]; chk('جدول السريان: يُطبّق عند السريان', calc().par.p5, 40);
+      S.laws[0].from = '2025-06'; chk('جدول السريان: لا يُطبّق قبل السريان', calc().par.p5, 30);
+      chk('تفقيط 318273', tafqeet(318273), 'فقط ثلاثمائة وثمانية عشر ألفاً ومائتان وثلاثة وسبعون ليرة سورية لا غير');
+      chk('تفقيط 2000000', tafqeet(2000000), 'فقط مليونان ليرة سورية لا غير');
+      load(EX1); S.ents = [{ n: 'أ', a: '2023-01-01', b: '2024-06-30' }, { n: 'ب', a: '2024-07-01', b: '2025-04-03' }]; S.added = 0; var qa = post(calc());
+      chk('مدة أقل من 180: لا معاش', qa.noPen, true); chk('تعويض خدمتين: عدد الصفوف', qa.cs.rows.length, 2);
+      chk('تعويض مستقل لكل خدمة', qa.cs.total, qa.cs.rows[0].amt + qa.cs.rows[1].amt);
+      load(EX1); chk('أمثلة التعميم: المعاش لا يتأثر', post(calc()).noPen, false);
+    } catch (e) { bad++; out.push('<div>✗ خطأ أثناء الاختبار: ' + esc(e.message) + '</div>'); }
+    S = keep[0]; exNote = keep[1]; exExpect = keep[2]; REF = keepRef;
+    $('tests').innerHTML = '<div class="status ' + (bad ? 'bad' : 'good') + '"><b>' + (bad ? 'فشل ' + bad + ' اختبار' : 'نجحت جميع الاختبارات') + '</b>' + out.join('') + '</div>';
+  }
+  $('run-tests').onclick = runTests;
+
+  function cmpRate(m, kind, par2) { var r = kind === 'leave' ? (m < 60 ? pv('c58b1') : (m < 120 ? pv('c58b2') : pv('c58b3'))) : (kind === 'female' ? pv('c58a') : pv('c57')); return par2 ? r - pv('cut') : r; }
+  function cmpCalc(R, C) {
+    var m = R.tm, kind = C.kind || 'leave', o = { months: m, ok: !(kind === 'leave' && m >= 240) };
+    o.rate = cmpRate(m, kind, C.par2);
+    o.avg = R.avg24; o.amt = o.ok ? fl(R.avg24 * m * o.rate / 100) : 0;
+    o.fund = (o.ok && C.par2) ? fl(R.avg24 * m * pv('cut') / 100) : 0;
+    o.bonus = +C.bonus || 0; o.total = o.amt + o.bonus;
+    if (kind === 'age60' && m >= 156 && m < 180) { o.buyN = 180 - m; o.buyCost = fl(R.rows[R.rows.length - 1].ap * pv('buy') / 100 * o.buyN); }
+    return o;
+  }
+  function incLbl(x) { return x.exc ? 'زيادة استثنائية (مبلغ ثابت دون نسبة): ' : 'زيادة ' + x.k + ' بنسبة <span class="num">' + esc(x.p) + '%</span>: '; }
+  function ceilTable(R) {
+    var q5 = +R.par.p5 || 0, q2 = +R.par.p2 || 0;
+    var ic = R.incs.filter(function (x) { return x.s > R.W5 && x.s <= R.E - 1; }).sort(function (x, y) { return x.s - y.s; });
+    return '<h4>تطبيق قاعدة التجاوز (م56/ب)</h4><div class="scroll"><table><thead><tr><th>البند</th><th>سقف 5 سنوات</th><th>سقف سنتين</th></tr></thead><tbody>' +
+      '<tr><td>أجر بداية الحساب (شهر <span class="num">' + lab(R.W5) + '</span> / <span class="num">' + lab(R.W2) + '</span>)</td><td class="num">' + nf(R.base5) + '</td><td class="num">' + nf(R.base2) + '</td></tr>' +
+      '<tr><td>× <span class="num">' + (100 + q5) + '%</span> / <span class="num">' + (100 + q2) + '%</span></td><td class="num">' + nf(R.c5base) + '</td><td class="num">' + nf(R.c2base) + '</td></tr>' +
+      ic.map(function (x) { return '<tr><td>+ ' + incLbl(x) + esc(x.n) + ' (<span class="num">' + lab(x.s) + '</span>)</td><td class="num">' + nf(x.amt) + '</td><td class="num">' + (x.s > R.W2 ? nf(x.amt) : '-') + '</td></tr>'; }).join('') +
+      '</tbody><tfoot><tr class="total"><td>السقف في آخر شهر (<span class="num">' + lab(R.E - 1) + '</span>)</td><td class="num">' + nf(R.lastC5) + '</td><td class="num">' + nf(R.lastC2) + '</td></tr>' +
+      '<tr class="total"><td>السقف المعتمد (الأقل من السقفين)</td><td colspan="2" class="num">' + nf(R.lastCeil) + '</td></tr></tfoot></table></div>' + legNotesHtml(R);
+  }
+  function ovr24(R) {
+    var a = 0, p = 0, x = 0;
+    R.rows24.forEach(function (r) { a += r.act; p += r.ap; x += r.ex; }); var tr = grpRows(R.rows24, ['act', 'c', 'ap', 'ex']);
+    return '<h4>الأجر المعتمد لحساب التعويض بعد استبعاد التجاوز (آخر ' + R.n24 + ' شهراً)</h4><div class="scroll"><table><thead><tr><th>الفترة</th><th>عدد الاشتراكات</th><th>الأجر الفعلي</th><th>السقف المعتمد</th><th>الأجر المعتمد</th><th>التجاوز المستبعد</th></tr></thead><tbody>' + tr + '</tbody><tfoot><tr class="total"><td>المجموع</td><td class="num">' + R.rows24.length + '</td><td class="num">' + nf(a) + '</td><td></td><td class="num">' + nf(p) + '</td><td class="num">' + nf(x) + '</td></tr></tfoot></table></div>' + grpNote;
+  }
+  function renderIns(R) {
+    var el = $('elig'), I = S.ins, ed = S.entitle || I.sep;
+    if (!I.birth || !I.gender || !ed || !R.tm) { el.innerHTML = '<p class="hint">أدخل الجنس وتاريخ الولادة وتاريخ الاستحقاق ومدة الخدمة لعرض فحص الأهلية.</p>'; return; }
+    var b = I.birth.split('-').map(Number), e = ed.split('-').map(Number), f = I.gender === 'f';
+    var age = e[0] - b[0] - ((e[1] < b[1] || (e[1] === b[1] && e[2] < b[2])) ? 1 : 0), m = R.tm, ok = [];
+    if (age >= (f ? 55 : 60) && m >= 180) ok.push('م54/أ: سن ' + (f ? 55 : 60) + ' و180 اشتراكاً');
+    if (age >= (f ? 50 : 55) && m >= 240) ok.push('م54/ب: سن ' + (f ? 50 : 55) + ' و240 اشتراكاً');
+    if (m >= 300) ok.push('م54/د: 300 اشتراك بطلب المؤمن عليه دون شرط السن');
+    var t = '<div class="kv"><div>العمر عند الاستحقاق</div><div class="num">' + age + ' سنة</div><div>عدد الاشتراكات</div><div class="num">' + m + ' شهراً</div></div>';
+    t += ok.length ? '<div class="status ok" style="margin-top:8px">تتوفر شروط معاش الشيخوخة: ' + ok.join('؛ ') + '.</div>'
+      : '<div class="status bad" style="margin-top:8px">الخدمة لا تؤهله لاستحقاق معاش تقاعدي (لا تتوفر شروط المادة 54)، ويُستحق تعويض دفعة واحدة لكل خدمة على حدة (' + (age >= 60 ? 'م57' : 'م58') + ') في صفحة «التعويض».</div>';
+    if (age > 65) t += '<div class="status bad" style="margin-top:8px">العمر يتجاوز 65 سنة وهو الحد الأقصى لسن الاشتراك (م55/أ).</div>';
+    el.innerHTML = t + '<p class="hint">المهن الشاقة والخطرة (م54/ج) لا تُفحص آلياً.</p>';
+  }
+  function renderCmp(R) {
+    var el = $('cmp'), I = S.ins, C = S.cmp || {}, kind = C.kind || 'leave';
+    var dstr = function (x) { return x ? x.replace(/-/g, '/') : '..........'; };
+    var kinds = { leave: 'خروج نهائي من نطاق القانون قبل سن الستين (م58/ب)', age60: 'انتهاء الخدمة لإتمام سن الستين دون شروط المعاش (م57)', female: 'استقالة المؤمن عليها للزواج أو الإنجاب (م58/أ)' };
+    var html = hdrHtml('c') + '<h3>تقرير تعويض الدفعة الواحدة</h3>' + metaHtml() + '<div class="idgrid">' +
+      '<div><b>اسم المؤمن عليه:</b><span>' + esc(I.name || '..........') + '</span></div><div><b>الرقم التأميني:</b><span class="num">' + esc(I.no || '..........') + '</span></div>' +
+      '<div><b>تاريخ الاشتراك:</b><span class="num">' + dstr(I.sub) + '</span></div><div><b>تاريخ الانفكاك:</b><span class="num">' + dstr(I.sep) + '</span></div></div>';
+    if (R.err) html += '<div class="note">تعذر الحساب: ' + esc(R.err) + '</div>';
+    else {
+      if (R.noPen) { el.innerHTML = html + noPenBody(R) + sigHtml('c') + footHtml(); return; }
+      var o = cmpCalc(R, C), warn = [];
+      if (kind === 'age60' && o.months >= 180) warn.push('مدة الاشتراك 180 شهراً فأكثر: قد تتوفر شروط معاش الشيخوخة (م54/أ).');
+      if (o.buyN) warn.push('يمكن شراء ' + o.buyN + ' اشتراكاً مكملاً لاستحقاق المعاش (م55/ج) بتكلفة تقريبية ' + nf(o.buyCost) + ' (' + pv('buy') + '% من آخر أجر خاضع × ' + o.buyN + ').');
+      if (kind === 'leave' && o.months >= 300) warn.push('مدة الاشتراك 300 شهر فأكثر: يحق طلب المعاش دون شرط السن (م54/د).');
+      if (!o.ok) warn.push('المادة 58/ب تنطبق على الاشتراكات الأقل من 240 شهراً، ومدة هذا الملف ' + o.months + ' شهراً.');
+      html += '<h4>' + kinds[kind] + '</h4><div class="scroll"><table><tbody>' +
+        '<tr><td>عدد أشهر الاشتراك</td><td class="num">' + o.months + '</td></tr>' +
+        (R.anyOver24 ? '<tr><td>متوسط الأجر الفعلي لآخر <span class="num">' + R.n24 + '</span> شهراً (قبل التجاوز)</td><td class="num">' + nf(R.avgAct24) + '</td></tr>' : '') +
+        '<tr><td>متوسط الأجر الشهري لآخر <span class="num">' + R.n24 + '</span> شهراً (بعد حدّي 15% و30%، م56/ب)</td><td class="num">' + nf(o.avg) + '</td></tr>' +
+        '<tr><td>نسبة التعويض عن كل شهر اشتراك' + (C.par2 ? ' (بعد إنقاص 3% للخدمة المتوازية)' : '') + '</td><td class="num">' + o.rate + '%</td></tr>' +
+        '<tr><td>التعويض = ' + nf(o.avg) + ' × ' + o.months + ' × ' + o.rate + '%</td><td class="num"><b>' + nf(o.amt) + '</b></td></tr>' +
+        (o.fund ? '<tr><td>منه يُحوَّل إلى صندوق البطالة (3%)</td><td class="num">' + nf(o.fund) + '</td></tr>' : '') +
+        (o.bonus ? '<tr><td>مكافأة نهاية الخدمة عن المدة السابقة للاشتراك (م70)</td><td class="num">' + nf(o.bonus) + '</td></tr>' : '') +
+        '</tbody><tfoot><tr class="total"><td>إجمالي المستحق</td><td class="num">' + nf(o.total) + '</td></tr></tfoot></table></div>' +
+        (R.anyOver24 ? ceilTable(R) + ovr24(R) : '') + '<div class="note">ملاحظة: ' + (R.anyOver24 ? 'يوجد تجاوز على الأجور الفعلية في فترة الحساب بمتوسط ' + nf(R.avgAct24 - R.avg24) + ' وتطبق أحكام المادة 56 / ب.' : 'لا يوجد تجاوز للأجور في فترة الحساب وتُعتمد الأجور الفعلية.') + '</div>' +
+        warn.map(function (w) { return '<div class="note">ملاحظة: ' + esc(w) + '</div>'; }).join('');
+    }
+    html += (R.err ? '' : tfqLine('التعويض المقرر صرفه', cmpCalc(R, C).total)) + sigHtml('c') + footHtml();
+    el.innerHTML = html;
+  }
+  function summaryText() {
+    var R = last;
+    if (!R || R.err) return 'لا توجد نتيجة بعد.';
+    if (R.noPen) return ['الخدمة لا تؤهله لاستحقاق معاش تقاعدي', 'مجموع الاشتراكات: ' + R.tm + ' شهراً'].concat(R.cs.rows.map(function (x) { return x.name + ': ' + x.months + ' شهراً × ' + nf(x.avg) + ' × ' + x.rate + '% = ' + nf(x.amt); })).concat(['التعويض المقرر صرفه: ' + nf(R.cs.total) + ' (' + tafqeet(R.cs.total) + ')']).join('\n');
+    return ['حساب التجاوز وفق المادة 56/ب',
+      'تاريخ الاستحقاق: ' + S.entitle,
+      'سنوات الخدمة المعتمدة: ' + R.yrsUsed,
+      'سقف الخمس سنوات: ' + nf(R.lastC5) + ' | سقف السنتين: ' + nf(R.lastC2) + ' | المعتمد: ' + nf(R.lastCeil),
+      'الأجر الفعلي الأخير: ' + nf(R.lastAct) + (R.over > 0 ? ' (تجاوز ' + nf(R.over) + ')' : ' (لا تجاوز)'),
+      'متوسط الأجر المعتمد: ' + nf(R.avg),
+      'المعاش الشهري بعد قاعدة التجاوز: ' + nf(R.pension),
+      'المعاش دون سقف: ' + nf(R.pensionNoCap) + ' | النقص: ' + nf(R.loss)].concat(R.mf && R.mf.multi ? ['المعاش المقرر بعد المفاضلة: ' + nf(R.final)] : []).concat(R.compM ? ['تعويض الدفعة الواحدة (راتب ' + R.compM + ' شهر): ' + nf(R.comp)] : []).join('\n');
+  }
+
+
+  /* ---------- شرط الاستحقاق، تعويض كل خدمة مستقلة، التفقيط ---------- */
+  function eligInfo(R) {
+    var I = S.ins, ed = S.entitle || I.sep, m = R.tm, o = { m: m, known: false, ok: false, age: null };
+    if (I.birth && I.gender && ed) {
+      var b = I.birth.split('-').map(Number), e = ed.split('-').map(Number), f = I.gender === 'f';
+      var age = e[0] - b[0] - ((e[1] < b[1] || (e[1] === b[1] && e[2] < b[2])) ? 1 : 0);
+      o.age = age; o.known = true; o.ok = (age >= (f ? 55 : 60) && m >= 180) || (age >= (f ? 50 : 55) && m >= 240) || m >= 300;
+    } else if (m >= 300) { o.known = true; o.ok = true; }
+    else if (m < 180) { o.known = true; o.ok = false; }
+    else { o.ok = true; }
+    return o;
+  }
+  function post(R) {
+    if (R.err) return R;
+    R.el = eligInfo(R); R.noPen = !R.el.ok;
+    if (R.noPen) R.cs = compSvcs(R);
+    return R;
+  }
+  function compSvcs(R) {
+    var C = S.cmp || {}, kind = C.kind || 'leave', keep = S, rows = [], ok = !(kind === 'leave' && R.tm >= 240);
+    var valid = S.ents.filter(function (r) { return r.a && r.b && r.b >= r.a; });
+    var lastE = null; valid.forEach(function (r) { if (!lastE || r.b > lastE.b) lastE = r; });
+    var dateless = (S.leaves || []).filter(function (l) { return !l.a; });
+    valid.forEach(function (r) {
+      var c = JSON.parse(JSON.stringify(S)), lv = (S.leaves || []).filter(function (l) { return l.a && l.a >= r.a && l.a <= r.b; });
+      if (r === lastE) lv = lv.concat(dateless);
+      c.ents = [{ n: r.n, a: r.a, b: r.b }]; c.added = 0; c.leaves = JSON.parse(JSON.stringify(lv)); c.entitle = r.b; c.noOvr = false;
+      var R2; S = c; try { R2 = calc(); } finally { S = keep; }
+      if (R2.err) return;
+      var w = +r.w > 0 ? +r.w : 0, avg = w || R2.avg24, months = R2.tm;
+      var rate = cmpRate(months, kind, C.par2), amt = ok ? fl(avg * months * rate / 100) : 0;
+      rows.push({ name: r.n || 'خدمة', a: r.a, b: r.b, months: months, avg: avg, rate: rate, amt: amt, fund: (ok && C.par2) ? fl(avg * months * pv('cut') / 100) : 0,
+        R2: R2, manual: !!w, uncov: !w && (R2.firstStart == null || R2.firstStart > R2.E - R2.n24), over: !w && R2.anyOver24, avgAct: R2.avgAct24, last: r === lastE });
+    });
+    var add = +S.added || 0, ref = rows.filter(function (x) { return x.last; })[0];
+    if (add > 0 && ref) { var ra = cmpRate(add, kind, C.par2); rows.push({ name: 'خدمات مضافة', months: add, avg: ref.avg, rate: ra, amt: ok ? fl(ref.avg * add * ra / 100) : 0, fund: (ok && C.par2) ? fl(ref.avg * add * pv('cut') / 100) : 0, added: true }); }
+    var sum = rows.reduce(function (a, x) { return a + x.amt; }, 0), fund = rows.reduce(function (a, x) { return a + x.fund; }, 0), bonus = +C.bonus || 0;
+    return { rows: rows, ok: ok, sum: sum, fund: fund, bonus: bonus, total: sum + bonus, kind: kind };
+  }
+  var TO = ['', 'واحد', 'اثنان', 'ثلاثة', 'أربعة', 'خمسة', 'ستة', 'سبعة', 'ثمانية', 'تسعة', 'عشرة', 'أحد عشر', 'اثنا عشر', 'ثلاثة عشر', 'أربعة عشر', 'خمسة عشر', 'ستة عشر', 'سبعة عشر', 'ثمانية عشر', 'تسعة عشر'];
+  var TT = ['', '', 'عشرون', 'ثلاثون', 'أربعون', 'خمسون', 'ستون', 'سبعون', 'ثمانون', 'تسعون'];
+  var TH = ['', 'مائة', 'مائتان', 'ثلاثمائة', 'أربعمائة', 'خمسمائة', 'ستمائة', 'سبعمائة', 'ثمانمائة', 'تسعمائة'];
+  function w999(n) {
+    var p = [], h = Math.floor(n / 100), r = n % 100;
+    if (h) p.push(TH[h]);
+    if (r) { if (r < 20) p.push(TO[r]); else { var u = r % 10, t = Math.floor(r / 10); p.push(u ? TO[u] + ' و' + TT[t] : TT[t]); } }
+    return p.join(' و');
+  }
+  function tafqeet(n) {
+    n = Math.round(+n || 0); if (n === 0) return 'فقط صفر ليرة سورية لا غير';
+    var sc = [[1e9, 'مليار', 'ملياران', 'مليارات', 'ملياراً'], [1e6, 'مليون', 'مليونان', 'ملايين', 'مليوناً'], [1e3, 'ألف', 'ألفان', 'آلاف', 'ألفاً']], parts = [];
+    sc.forEach(function (c) {
+      var g = Math.floor(n / c[0]); n -= g * c[0]; if (!g) return;
+      if (g === 1) parts.push(c[1]); else if (g === 2) parts.push(c[2]);
+      else { var r = g % 100; parts.push(w999(g) + ' ' + (r >= 3 && r <= 10 ? c[3] : (r >= 11 ? c[4] : c[1]))); }
+    });
+    if (n) parts.push(w999(n));
+    return 'فقط ' + parts.join(' و') + ' ليرة سورية لا غير';
+  }
+  function tfqLine(label, v) { return '<div class="note tfq"><b>' + label + ':</b> <span class="num">' + nf(v) + '</span> ل.س، ' + tafqeet(v) + '.</div>'; }
+  function tfqHtml(R) {
+    if (R.err) return '';
+    if (R.noPen) return tfqLine('التعويض المقرر صرفه', R.cs.total);
+    return tfqLine('المعاش الشهري المقرر صرفه', R.final) + (R.compM ? tfqLine('تعويض الدفعة الواحدة المقرر صرفه (م56/ح)', R.comp) : '');
+  }
+  function noPenBody(R) {
+    var detail = '', cs = R.cs, C = S.cmp || {}, dstr = function (x) { return x ? x.replace(/-/g, '/') : ''; }, notes = [];
+    var why = 'مدة الاشتراك المجتمعة ' + R.tm + ' شهراً' + (R.el.known && R.el.age != null ? '، والعمر عند الاستحقاق ' + R.el.age + ' سنة' : '') + '، ولا تتوفر شروط المادة 54';
+    var html = '<div class="note"><b>ملاحظة: الخدمة لا تؤهله لاستحقاق معاش تقاعدي</b> (' + why + ')، فيُصرف له تعويض دفعة واحدة تُحسب فيه كل خدمة على حدة وتُجمع التعويضات.</div>';
+    if (!cs.ok) notes.push('المادة 58/ب تنطبق على الاشتراكات الأقل من ' + 240 + ' شهراً، ومجموع اشتراكات هذا الملف ' + R.tm + ' شهراً (راجع العمر وشروط المادة 54).');
+    if (!cs.rows.length) return html + '<div class="status bad">أدخل تواريخ الالتحاق والانفكاك لكل خدمة في صفحة «بيانات المؤمن عليه».</div>';
+    html += '<div class="scroll"><table><thead><tr><th>الخدمة</th><th>من</th><th>إلى</th><th>المدة بالأشهر</th><th>متوسط أجر آخر سنتين (بعد م56/ب)</th><th>نسبة التعويض</th><th>تعويض الخدمة</th></tr></thead><tbody>' +
+      cs.rows.map(function (x) { return '<tr class="' + (x.over ? 'over' : '') + '"><td>' + esc(x.name) + '</td><td class="num">' + dstr(x.a) + '</td><td class="num">' + dstr(x.b) + '</td><td class="num">' + x.months + '</td><td class="num">' + nf(x.avg) + '</td><td class="num">' + x.rate + '%</td><td class="num"><b>' + nf(x.amt) + '</b></td></tr>'; }).join('') +
+      '</tbody><tfoot><tr class="total"><td colspan="3">مجموع تعويضات الخدمات</td><td class="num">' + cs.rows.reduce(function (a, x) { return a + x.months; }, 0) + '</td><td></td><td></td><td class="num">' + nf(cs.sum) + '</td></tr>' +
+      (cs.bonus ? '<tr><td colspan="6">مكافأة نهاية الخدمة عن المدة السابقة للاشتراك (م70)</td><td class="num">' + nf(cs.bonus) + '</td></tr>' : '') +
+      '<tr class="total"><td colspan="6">إجمالي التعويض المقرر صرفه</td><td class="num">' + nf(cs.total) + '</td></tr></tfoot></table></div>';
+    cs.rows.forEach(function (x) {
+      if (x.uncov) notes.push('أجور «' + x.name + '» غير مغطاة بالكامل في جدول الأجور، فلا يُعتمد متوسطها كما هو؛ أدخل متوسط أجر آخر سنتين لهذه الخدمة في بيانات الخدمة.');
+      if (x.over) { notes.push('يوجد تجاوز للأجور في «' + x.name + '» بمتوسط ' + nf(x.avgAct - x.avg) + '، وقد طُبّقت المادة 56/ب بتاريخ انفكاك هذه الخدمة، ويُحسب التعويض على الأجر المعتمد بعد استبعاد التجاوز.'); detail += '<h4>الخدمة «' + esc(x.name) + '»: تطبيق قاعدة التجاوز بتاريخ انفكاكها</h4>' + ceilTable(x.R2) + ovr24(x.R2); }
+      else if (x.manual) notes.push('متوسط أجر «' + x.name + '» مُدخل يدوياً ولم تُطبَّق عليه قاعدة التجاوز؛ تأكد أنه بعد استبعاد التجاوز.');
+      else if (!x.added && !x.uncov) notes.push('لا يوجد تجاوز للأجور في «' + x.name + '» وتُعتمد الأجور الفعلية.');
+      if (x.added) notes.push('الخدمات المضافة تُحسب على متوسط أجر آخر خدمة.');
+    });
+    if (cs.fund) notes.push('منه يُحوَّل إلى صندوق البطالة ' + nf(cs.fund) + ' (خدمة متوازية، م56/د).');
+    notes.push('إن كانت المهنة شاقة وخطرة (م54/ج) أو وُجد استحقاق آخر فيُقدَّر الأمر يدوياً.');
+    return html + detail + notes.map(function (n) { return '<div class="note">ملاحظة: ' + esc(n) + '</div>'; }).join('') + tfqHtml(R);
+  }
+  function noPenDoc(R) {
+    var I = S.ins, dstr = function (x) { return x ? x.replace(/-/g, '/') : '..........'; };
+    return hdrHtml('c') + '<h3>تقرير تعويض الدفعة الواحدة</h3>' + metaHtml() + '<div class="idgrid">' +
+      '<div><b>اسم المؤمن عليه:</b><span>' + esc(I.name || '..........') + '</span></div><div><b>الرقم التأميني:</b><span class="num">' + esc(I.no || '..........') + '</span></div>' +
+      '<div><b>تاريخ الاشتراك:</b><span class="num">' + dstr(I.sub) + '</span></div><div><b>تاريخ الانفكاك:</b><span class="num">' + dstr(I.sep) + '</span></div></div>' +
+      noPenBody(R) + sigHtml('c') + footHtml();
+  }
+  function renderSummary(R) {
+    if (R.err || !R.noPen) return renderSummary0(R);
+    $('sum').innerHTML = '<div class="tile main"><div class="k">التعويض المقرر صرفه (دفعة واحدة)</div><div class="v num">' + nf(R.cs.total) + ' ل.س</div></div>' +
+      '<div class="tile"><div class="k">عدد الخدمات</div><div class="v num">' + R.cs.rows.length + '</div></div>' +
+      '<div class="tile"><div class="k">مجموع الاشتراكات (شهر)</div><div class="v num">' + R.tm + '</div></div>' +
+      '<div class="tile"><div class="k">الحالة</div><div class="v"><span class="pill warn">لا يؤهله لمعاش</span></div></div>';
+  }
+  function renderResult(R) {
+    if (R.err) return renderResult0(R);
+    if (R.noPen) { $('res').innerHTML = noPenBody(R); return; }
+    renderResult0(R); $('res').insertAdjacentHTML('beforeend', tfqHtml(R));
+  }
+  function renderReport(R) { renderReport0(R); if (R.noPen && !R.err) $('rep').innerHTML = noPenDoc(R); else if (!R.err) $('rep').insertAdjacentHTML('beforeend', tfqHtml(R)); }
+  function renderOrg(R) { renderOrg0(R); if (R.noPen && !R.err) $('org').innerHTML = noPenDoc(R); else if (!R.err) $('org').insertAdjacentHTML('beforeend', tfqHtml(R)); }
+  function renderMf(R) { renderMf0(R); if (R.noPen && !R.err) $('mf').innerHTML = noPenDoc(R); else if (!R.err) $('mf').insertAdjacentHTML('beforeend', tfqHtml(R)); }
+
+  /* ---------- الأحداث ---------- */
+  var app = $('app');
+  app.addEventListener('input', function (e) {
+    var t = e.target;
+    if (t.dataset.g) { S[t.dataset.g] = t.value; }
+    else if (t.dataset.n) { S.ins[t.dataset.n] = t.value; }
+    else if (t.dataset.p) { S.par[t.dataset.p] = t.value; }
+    else if (t.dataset.c) { S.cmp = S.cmp || {}; S.cmp[t.dataset.c] = t.type === 'checkbox' ? t.checked : t.value; }
+    else if (t.dataset.gb) { S[t.dataset.gb] = t.checked; rowsLeg(); }
+    else if (t.dataset.r) { REF.leg[+t.dataset.i][t.dataset.r] = (t.type === 'checkbox' ? t.checked : t.value); refSave(); }
+    else if (t.dataset.pa) { if (t.dataset.pa === 'rate') S.perRate = t.value; else { S.perAuto = t.checked; if (!S.perAuto) S.per = S.per.filter(function (r) { return !r.ak || r.ed; }); if (!S.per.length) S.per.push({ n: '', d: '', s: '', p: 9 }); rowsPer(); } }
+    else if (t.dataset.l) { var rw = S[t.dataset.l][+t.dataset.i]; rw[t.dataset.f] = t.value; if (t.dataset.l === 'per') rw.ed = true; if (t.dataset.l === 'per' && t.dataset.f === 't') { if (t.value === 'exc' && rw.amt == null) rw.amt = ''; rowsPer(); } }
+    else if (t.dataset.h) { H[t.dataset.h] = t.type === 'checkbox' ? t.checked : t.value; hSave(); }
+    else if (t.dataset.q) { rp()[t.dataset.q] = t.value; }
+    else return;
+    refresh();
+  });
+  app.addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    if (b.dataset.add) {
+      var k = b.dataset.add;
+      if (k === 'lv') { (S.leaves = S.leaves || []).push({ n: '', a: '', b: '', m: '' }); rowsLv(); }
+      if (k === 'ent') { S.ents.push({ n: '', a: '', b: '' }); rowsEnt(); }
+      if (k === 'ref') { REF.leg.push({ n: '', issued: '', s: '', p: '', minw: '' }); refSave(); rowsRef(); }
+      if (k === 'law') { (S.laws = S.laws || []).push({ from: '', p5: '', p2: '', rate: '', cap: '', maxY: '', wageCap: '', minPen: '' }); rowsLaw(); }
+      if (k === 'wag') { S.wages.push({ s: '', w: '' }); rowsWag(); }
+      if (k === 'leg') { if (S.legImport !== false) { REF.leg.push({ n: '', issued: '', s: '', p: '', minw: '' }); refSave(); rowsRef(); showTab('ref'); } else { S.leg.push({ n: '', p: '', s: '' }); rowsLeg(); } }
+      if (k === 'per') { S.per.push({ n: '', d: '', s: '', p: 9 }); rowsPer(); }
+      if (k === 'perx') { S.per.push({ n: 'زيادة استثنائية', d: '', s: '', p: '', t: 'exc', amt: '' }); rowsPer(); }
+      refresh();
+    } else if (b.dataset.delr) {
+      REF.leg.splice(+b.dataset.i, 1); refSave(); rowsRef(); refresh();
+    } else if (b.dataset.del) {
+      var l = b.dataset.del, gone = S[l].splice(+b.dataset.i, 1)[0];
+      if (l === 'per' && gone && gone.ak) { (S.perSkip = S.perSkip || []).push(gone.ak); }
+      if (!S[l].length && l !== 'laws' && l !== 'leaves' && !(l === 'per' && S.perAuto)) S[l].push(l === 'ents' ? { n: '', a: '', b: '' } : l === 'wages' ? { s: '', w: '' } : l === 'leg' ? { n: '', p: '', s: '' } : { n: '', d: '', s: '', p: 9 });
+      rowsAll(); refresh();
+    } else if (b.id === 'per-regen') {
+      S.perSkip = []; S.per = S.per.filter(function (r) { return !r.ak || r.ed; }); S.perAuto = true; $('per-auto').checked = true; rowsPer(); refresh();
+    } else if (b.dataset.xt) {
+      exportIncreases(b.dataset.xt, b.dataset.k);
+    } else if (b.dataset.prt) {
+      try { window.print(); } catch (x) {}
+    } else if (b.dataset.exp) {
+      exportDoc(b.dataset.exp, b.dataset.src);
+    } else if (b.dataset.t) {
+      showTab(b.dataset.t);
+    }
+  });
+  /* إعادة الترتيب من الأقدم للأحدث عند مغادرة حقل التاريخ (حتى لا يضيع المؤشر أثناء الكتابة) */
+  app.addEventListener('focusout', function (e) {
+    var t = e.target, f = t.dataset && t.dataset.f;
+    if (!(t.dataset && (t.dataset.r === 's' || (t.dataset.l && (f === 's' || f === 'a' || f === 'from'))))) return;
+    if (sortAll()) { rowsEnt(); rowsWag(); rowsLv(); rowsLeg(); rowsPer(); rowsLaw(); rowsRef(); refresh(); }
+  });
+  function showTab(t) {
+    ['ins', 'wag', 'lv', 'law', 'ref', 'leg', 'per', 'res', 'rep', 'mf', 'org', 'cmp', 'hdr'].forEach(function (k) { $('p-' + k).hidden = (k !== t); });
+    Array.prototype.forEach.call($('tabs').children, function (b) { b.setAttribute('aria-selected', b.dataset.t === t ? 'true' : 'false'); });
+  }
+  $('inq').onclick = function () {
+    var no = (S.ins.no || '').trim(), m = $('inq-msg');
+    try { if (no && navigator.clipboard) navigator.clipboard.writeText(no); } catch (e) {}
+    window.open('https://www.taminat.sy/home/page2', '_blank', 'noopener');
+    m.textContent = 'فُتحت صفحة المؤسسة في تبويب جديد' + (no ? ' ونُسخ الرقم التأميني ' + no + ' إن سمح المتصفح' : '') + '. اختر الفرع ثم انقل البيانات إلى هذه الصفحة. الربط الآلي المباشر غير ممكن من ملف محلي بسبب حماية المتصفح.';
+  };
+  $('ex1').onclick = function () { load(EX1); rowsAll(); refresh(); };
+  $('ex2').onclick = function () { load(EX2); rowsAll(); refresh(); };
+  $('clr').onclick = function () { blank(); rowsAll(); refresh(); };
+  $('copy').onclick = function () {
+    var txt = summaryText(), msg = $('copied');
+    var fallback = function () {
+      var ta = document.createElement('textarea'); ta.value = txt; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); msg.textContent = 'تم النسخ.'; } catch (x) { msg.textContent = 'تعذر النسخ، حدّد النص يدوياً.'; }
+      ta.remove();
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(function () { msg.textContent = 'تم النسخ.'; }, fallback);
+    else fallback();
+  };
+
+  /* التفعيل معطّل مؤقتاً حتى اعتماد الصيغة النهائية ثم يُعاد إدراجه. */
+
+  /* ---------- الجدول الثابت: تصدير واستيراد ---------- */
+  function refMsg(t) { $('ref-msg').textContent = t; }
+  /* ---------- تصدير جداول الزيادات إلى Excel / Word ---------- */
+  function exportTable(kind, name, title, heads, rows) {
+    var isX = kind === 'excel', box = document.createElement('div'), tb = document.createElement('table');
+    var addRow = function (cells, tag) { var tr = document.createElement('tr'); cells.forEach(function (c) { var td = document.createElement(tag); td.textContent = c == null ? '' : c; if (isX) td.setAttribute('style', 'mso-number-format:"\\@"'); tr.appendChild(td); }); tb.appendChild(tr); };
+    addRow(heads, 'th'); rows.forEach(function (r) { addRow(r, 'td'); });
+    var h = document.createElement('h3'); h.textContent = title; box.appendChild(h); box.appendChild(tb);
+    var css = 'body{font-family:Arial,Tahoma,sans-serif;direction:rtl}table{border-collapse:collapse;width:100%}th,td{border:1px solid #888;padding:4px;text-align:center}th{background:#eef2f5}h3{text-align:center}';
+    var xmlHead = isX ? '<!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>الزيادات</x:Name><x:WorksheetOptions><x:DisplayRightToLeft/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->' : '<!--[if gte mso 9]><xml><w:WordDocument><w:View>Print</w:View></w:WordDocument></xml><![endif]-->';
+    var ns = 'xmlns:o="urn:schemas-microsoft-com:office:office" ' + (isX ? 'xmlns:x="urn:schemas-microsoft-com:office:excel"' : 'xmlns:w="urn:schemas-microsoft-com:office:word"') + ' xmlns="http://www.w3.org/TR/REC-html40"';
+    var html = '<html ' + ns + ' dir="rtl" lang="ar"><head><meta charset="utf-8"><title>' + esc(title) + '</title>' + xmlHead + '<style>' + css + '</style></head><body dir="rtl">' + box.innerHTML + '</body></html>';
+    var blob = new Blob(['\ufeff' + html], { type: isX ? 'application/vnd.ms-excel' : 'application/msword' });
+    var a = document.createElement('a'), no = (S && S.ins) ? norm(S.ins.no) : '';
+    a.href = URL.createObjectURL(blob); a.download = name + (name !== 'fixed-increases' && no ? '-' + no : '') + (isX ? '.xls' : '.doc');
+    document.body.appendChild(a); a.click(); a.remove();
+  }
+  function exportIncreases(which, kind) {
+    var R = last || {}, rows;
+    if (which === 'ref') {
+      rows = REF.leg.map(function (r) { return [r.n, r.issued, r.s, r.p, r.minw, isMf(r) ? 'نعم' : 'لا']; });
+      exportTable(kind, 'fixed-increases', 'الزيادات التشريعية الثابتة', ['الصك (رقم/بيان)', 'تاريخ الصدور', 'بدء التطبيق', 'نسبة الزيادة %', 'الحد الأدنى للأجور', 'تاريخ مفاضلة'], rows);
+    } else if (which === 'leg') {
+      rows = legList().map(function (r, i) { return [r.n, r.p, r.s, R.legAmt && R.legAmt[i] != null ? R.legBefore[i] : '', R.legAmt && R.legAmt[i] != null ? R.legAmt[i] : '', (R.legNote && R.legNote[i]) || '']; });
+      exportTable(kind, 'applied-increases', 'الزيادات التشريعية المطبقة', ['البيان', 'نسبة الزيادة %', 'شهر بدء الصرف', 'الأجر قبل الزيادة', 'مبلغ الزيادة', 'ملاحظة'], rows);
+    } else {
+      rows = S.per.map(function (r, i) { var ex = r.t === 'exc'; return [r.n, r.d, r.s, ex ? 'استثنائية' : r.p, (!ex && R.perAmt && R.perAmt[i] != null) ? R.perBefore[i] : '', R.perAmt && R.perAmt[i] != null ? R.perAmt[i] : '']; });
+      exportTable(kind, 'periodic-increases', 'الزيادات الدورية', ['البيان', 'تاريخ الاستحقاق', 'شهر بدء الصرف', 'النسبة %', 'الأجر قبل الزيادة', 'مبلغ الزيادة'], rows);
+    }
+  }
+  function parseRefFile(txt) {
+    try { var j = JSON.parse(txt); if (j && Array.isArray(j.leg)) return j.leg; } catch (e) {}
+    var rows = [];
+    if (/<table/i.test(txt)) {
+      var tb = new DOMParser().parseFromString(txt, 'text/html').querySelector('table');
+      if (tb) Array.prototype.forEach.call(tb.querySelectorAll('tr'), function (tr) { if (tr.querySelector('th')) return; rows.push(Array.prototype.map.call(tr.children, function (c) { return c.textContent.trim(); })); });
+    } else rows = txt.replace(/^\ufeff/, '').split(/\r?\n/).slice(1).map(function (l) { return l.split(/[,;\t]/).map(function (x) { return x.trim(); }); });
+    var num = function (x) { x = String(x == null ? '' : x).replace(/,/g, '').trim(); return (x !== '' && !isNaN(+x)) ? +x : ''; };
+    var dt = function (x) { return String(x || '').trim().replace(/\//g, '-'); };
+    return rows.filter(function (r) { return r.some(Boolean); }).map(function (r) { return { n: r[0] || '', issued: dt(r[1]), s: dt(r[2]).slice(0, 7), p: num(r[3]), minw: num(r[4]), mf: (r[5] == null || String(r[5]).trim() === '') ? undefined : /^(نعم|1|true|yes)$/i.test(String(r[5]).trim()) }; });
+  }
+  $('ref-imp').onclick = function () { $('ref-file').click(); };
+  $('ref-file').onchange = function () {
+    var fl1 = this.files && this.files[0]; if (!fl1) return;
+    var rd1 = new FileReader();
+    rd1.onload = function () { try { var j = parseRefFile(rd1.result); if (!j.length) throw 0; REF = { leg: j }; refSave(); rowsRef(); refresh(); refMsg('تم استيراد الجدول (' + j.length + ' سطر)'); } catch (e) { refMsg('ملف غير صالح'); } };
+    rd1.readAsText(fl1); this.value = '';
+  };
+  $('ref-def').onclick = function () { REF = { leg: JSON.parse(JSON.stringify(REF_DEF)) }; refSave(); rowsRef(); refresh(); refMsg('أُعيد الجدول الافتراضي'); };
+
+  /* ---------- حفظ واسترجاع السجلات ---------- */
+  var KEY = 'ovr56:records';
+  var norm = function (x) { return String(x || '').trim().replace(/[٠-٩]/g, function (d) { return d.charCodeAt(0) - 1632; }); };
+  function stRead() { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return null; } }
+  function stWrite(o) { try { localStorage.setItem(KEY, JSON.stringify(o)); return true; } catch (e) { return false; } }
+  function stMsg(t) { $('stmsg').textContent = t ? ' — ' + t : ''; }
+  var NOSTORE = 'التخزين غير متاح في هذا المتصفح، استخدم «تصدير ملف».';
+  function stList() {
+    var o = stRead() || {};
+    $('st-list').innerHTML = Object.keys(o).map(function (k) { return '<option value="' + esc(k) + '">' + esc((o[k].data.ins || {}).name || '') + '</option>'; }).join('');
+  }
+  function applyData(d) {
+    var def = { p5: 30, p2: 15, rate: 2.5, cap: 80, maxY: 32, compBase: 'pension', wageCap: '', minPen: '' };
+    d.par = Object.assign(def, d.par || {}); d.laws = d.laws || []; d.cmp = Object.assign({ kind: 'leave', par2: false, bonus: '' }, d.cmp || {}); if (d.refDate === undefined) d.refDate = ''; if (d.legImport === undefined) d.legImport = false; if (d.perAuto === undefined) d.perAuto = false; if (d.perRate === undefined) d.perRate = 9; d.perSkip = d.perSkip || [];
+    d.ins = Object.assign({ name: '', no: '', sub: '', sep: '', pay: '' }, d.ins || {});
+    if (!d.ents || !d.ents.length) d.ents = [{ n: '', a: '', b: '' }];
+    if (!d.wages || !d.wages.length) d.wages = [{ s: '', w: '' }];
+    if (!d.leg || !d.leg.length) d.leg = [{ n: '', p: '', s: '' }];
+    if (!d.per || !d.per.length) d.per = d.perAuto ? [] : [{ n: '', d: '', s: '', p: 9 }];
+    S = d; exNote = ''; exExpect = null; sortAll(); rowsAll(); refresh();
+  }
+  $('st-save').onclick = function () {
+    var no = norm(S.ins.no); if (!no) { stMsg('أدخل الرقم التأميني أولاً'); return; }
+    var o = stRead(); if (o === null) { stMsg(NOSTORE); return; }
+    var had = !!o[no];
+    o[no] = { saved: new Date().toISOString(), data: JSON.parse(JSON.stringify(S)) };
+    if (stWrite(o)) { stMsg(had ? 'تم تحديث السجل ' + no : 'تم حفظ السجل ' + no + ' على هذا الجهاز'); $('st-find').value = no; stList(); } else stMsg(NOSTORE);
+  };
+  $('st-load').onclick = function () {
+    var no = norm($('st-find').value || S.ins.no), o = stRead();
+    if (o === null) { stMsg(NOSTORE); return; }
+    if (!no || !o[no]) { stMsg('لا يوجد سجل بهذا الرقم'); return; }
+    applyData(JSON.parse(JSON.stringify(o[no].data))); $('st-find').value = no; stMsg('تم جلب السجل ' + no);
+  };
+  $('st-find').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('st-load').onclick(); });
+  $('st-del').onclick = function () {
+    var no = norm($('st-find').value), o = stRead();
+    if (o === null) { stMsg(NOSTORE); return; }
+    if (!no || !o[no]) { stMsg('اكتب رقم سجل محفوظ لحذفه'); return; }
+    delete o[no]; stWrite(o); stList(); $('st-find').value = ''; stMsg('تم حذف السجل ' + no);
+  };
+  $('st-exp').onclick = function () {
+    showTab('rep'); stMsg('تفتح نافذة الطباعة: اختر «حفظ بصيغة PDF»');
+    setTimeout(function () { try { window.print(); } catch (e) { stMsg('تعذرت الطباعة من هذه النافذة، افتح ملف الحاسبة في المتصفح'); } }, 60);
+  };
+  $('prt-all').onclick = function () { try { window.print(); } catch (e) { stMsg('تعذرت الطباعة من هذه النافذة'); } };
+  $('st-imp').onclick = function () { $('st-file').click(); };
+  $('st-file').onchange = function () {
+    var fl0 = this.files && this.files[0]; if (!fl0) return;
+    var rd = new FileReader();
+    rd.onload = function () { try { var j = JSON.parse(rd.result); applyData(j.data || j); stMsg('تم استيراد الملف، اضغط «حفظ الإدخالات» لحفظه على هذا الجهاز'); } catch (e) { stMsg('ملف غير صالح'); } };
+    rd.readAsText(fl0); this.value = '';
+  };
+
+  load(EX1); rowsAll(); refresh(); stList();
+  var framed = (function () { try { return window.self !== window.top; } catch (e) { return true; } })();
+  [['print', 'printnote', 'rep'], ['print2', 'printnote2', 'org'], ['print3', 'printnote3', 'cmp'], ['print4', 'printnote4', 'mf']].forEach(function (a) {
+    $(a[0]).hidden = framed;
+    $(a[1]).textContent = framed
+      ? 'تصدير Word وExcel متاح من هنا. لحفظ PDF نزّل ملف الحاسبة وافتحه بالمتصفح ثم اضغط «تصدير PDF» واختر الحفظ بصيغة PDF.'
+      : 'PDF: تفتح نافذة الطباعة اختر منها «حفظ بصيغة PDF». Word وExcel: يُنزَّل الملف مباشرة.';
+    $(a[0]).onclick = function () { showTab(a[2]); try { window.print(); } catch (e) {} };
+  });
+  window.__refresh = refresh;
+  window.__calc = function () { return { R: last, S: S }; };
+  window.__load = function (n) { load(n === 2 ? EX2 : EX1); rowsAll(); refresh(); return last.pension; };
+})();
+</script>
+
+</body>
+</html>
